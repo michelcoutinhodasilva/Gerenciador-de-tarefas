@@ -12,7 +12,9 @@ if (existsSync(ENV_FILE)) {
 
 const missing = REQUIRED.filter((name) => !process.env[name]);
 if (missing.length > 0) {
-  console.error(`Faltam variáveis: ${missing.join(', ')}. Copie .env.example para .env e preencha.`);
+  console.error(
+    `Faltam variáveis: ${missing.join(', ')}. Crie o .env na raiz do projeto com essas variáveis.`,
+  );
   process.exit(1);
 }
 

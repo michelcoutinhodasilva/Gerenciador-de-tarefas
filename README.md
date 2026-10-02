@@ -32,7 +32,7 @@ Fluxo: `View → Controller → Model → Supabase`. O Controller atualiza o est
 
 1. Crie um projeto em [supabase.com](https://supabase.com).
 2. No Supabase, abra **SQL Editor** e rode o arquivo [supabase/schema.sql](supabase/schema.sql).
-3. Copie [.env.example](.env.example) para `.env` e preencha `SUPABASE_URL` e `SUPABASE_PUBLISHABLE_KEY` (Supabase → **Project Settings → API Keys**).
+3. Crie o arquivo `.env` na raiz com `SUPABASE_URL=...` e `SUPABASE_PUBLISHABLE_KEY=...` (Supabase → **Project Settings → API Keys**).
    O `.env` é a fonte única das chaves: o script [scripts/generate-env.mjs](scripts/generate-env.mjs) gera `src/environments/environment.ts` sozinho antes de `start`, `build` e `test`. Nenhum dos dois vai para o git.
 4. Instale e rode:
 

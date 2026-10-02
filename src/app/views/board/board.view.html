@@ -1,0 +1,70 @@
+<div class="flex h-dvh flex-col">
+  <header class="flex items-center justify-between border-b border-white/5 px-6 py-3">
+    <div class="flex items-center gap-3">
+      <div
+        class="grid size-7 place-items-center rounded-md bg-indigo-500 text-sm font-semibold text-white"
+      >
+        T
+      </div>
+      <h1 class="text-sm font-semibold tracking-tight text-zinc-100">Gerenciador de Tarefas</h1>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <span class="hidden text-xs text-zinc-500 sm:inline">{{ auth.user()?.email }}</span>
+      <p-button
+        label="Sair"
+        severity="secondary"
+        [text]="true"
+        size="small"
+        (onClick)="auth.signOut()"
+      />
+    </div>
+  </header>
+
+  <div class="flex items-center justify-between px-6 pb-2 pt-5">
+    <div>
+      <h2 class="text-lg font-semibold tracking-tight text-zinc-100">Quadro</h2>
+      <p class="text-xs text-zinc-500">
+        Arraste os cartões entre as colunas. Pressione
+        <kbd
+          class="rounded border border-white/10 bg-white/5 px-1 font-mono text-[10px] text-zinc-300"
+          >C</kbd
+        >
+        para criar.
+      </p>
+    </div>
+    <p-button label="Nova tarefa" size="small" (onClick)="openCreate()" />
+  </div>
+
+  <main class="min-h-0 flex-1 overflow-x-auto px-6 pb-6 pt-3">
+    @if (tasks.loading()) {
+      <div class="flex gap-4" aria-busy="true">
+        @for (column of tasks.columns(); track column.status) {
+          <div class="h-64 w-80 shrink-0 animate-pulse rounded-xl bg-zinc-900/50"></div>
+        }
+      </div>
+    } @else {
+      <div cdkDropListGroup class="flex h-full items-start gap-4">
+        @for (column of tasks.columns(); track column.status) {
+          <app-kanban-column
+            class="max-h-full"
+            [status]="column.status"
+            [label]="column.label"
+            [tasks]="column.tasks"
+            (add)="openCreate(column.status)"
+            (edit)="openEdit($event)"
+            (remove)="confirmRemove($event)"
+            (dropped)="drop($event)"
+          />
+        }
+      </div>
+    }
+  </main>
+</div>
+
+<app-task-dialog
+  [(visible)]="dialogOpen"
+  [task]="editing()"
+  [saving]="tasks.saving()"
+  (save)="save($event)"
+/>

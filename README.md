@@ -1,59 +1,56 @@
-# GerenciadorTarefas
+# Gerenciador de Tarefas 2.0
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.1.
+Quadro Kanban com login, feito em **Angular 22 + TypeScript**, **Supabase**, **PrimeNG**, **Tailwind CSS** e **Angular CDK** (arrastar e soltar).
 
-## Development server
+## Arquitetura: MVC clássico
 
-To start a local development server, run:
-
-```bash
-ng serve
+```
+src/app/
+├── models/        M — dados, regras de negócio e acesso ao Supabase
+│   ├── entities/  regras puras (validação, mover tarefa, limites)
+│   ├── task.model.ts
+│   └── auth.model.ts
+├── controllers/   C — recebem as ações da tela, chamam o Model e guardam o estado
+│   ├── task.controller.ts
+│   └── auth.controller.ts
+├── views/         V — telas e componentes; só mostram e repassam cliques
+│   ├── login/
+│   ├── board/
+│   └── components/ (kanban-column, task-card, task-dialog)
+└── core/          infraestrutura (conexão Supabase, guards, avisos, tema)
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Regras:
 
-## Code scaffolding
+- A **View** nunca chama o Model nem o banco, só o Controller.
+- O **Controller** não mexe em HTML.
+- O **Model** não conhece View nem Controller.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Fluxo: `View → Controller → Model → Supabase`. O Controller atualiza o estado e a View redesenha sozinha.
 
-```bash
-ng generate component component-name
-```
+## Como rodar
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+1. Crie um projeto em [supabase.com](https://supabase.com).
+2. No Supabase, abra **SQL Editor** e rode o arquivo [supabase/schema.sql](supabase/schema.sql).
+3. Em **Project Settings → API**, copie a URL e a anon key para [src/environments/environment.ts](src/environments/environment.ts).
+4. Instale e rode:
 
 ```bash
-ng build
+npm install
+npm start          # abre em http://localhost:4200
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+> Para testar sem confirmar e-mail: Supabase → Authentication → Sign In / Providers → Email → desative **Confirm email**.
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Testes unitários (Vitest)
 
 ```bash
-ng test
+npm test -- --watch=false
 ```
 
-## Running end-to-end tests
+Cada camada é testada separadamente: Model (com o Supabase simulado), Controller (com o Model simulado) e View (com o Controller simulado).
 
-For end-to-end (e2e) testing, run:
+## Atalhos
 
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- `C` cria uma nova tarefa.
+- Clique duplo no cartão abre a edição.

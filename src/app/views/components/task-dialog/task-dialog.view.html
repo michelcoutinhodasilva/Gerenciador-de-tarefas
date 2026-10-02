@@ -1,0 +1,47 @@
+<p-dialog
+  [(visible)]="visible"
+  [header]="task() ? 'Editar tarefa' : 'Nova tarefa'"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '32rem', maxWidth: 'calc(100vw - 2rem)' }"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 pt-1">
+    <label class="flex flex-col gap-1.5">
+      <span class="text-sm font-medium text-zinc-300">Título</span>
+      <input
+        pInputText
+        formControlName="title"
+        data-testid="title"
+        placeholder="Ex.: Revisar proposta do cliente"
+        [maxlength]="limits.titleMax"
+        autocomplete="off"
+        autofocus
+      />
+    </label>
+
+    <label class="flex flex-col gap-1.5">
+      <span class="text-sm font-medium text-zinc-300">
+        Descrição <span class="font-normal text-zinc-500">(opcional)</span>
+      </span>
+      <textarea
+        pTextarea
+        formControlName="description"
+        data-testid="description"
+        rows="5"
+        placeholder="Detalhes, links, próximos passos..."
+        [maxlength]="limits.descriptionMax"
+      ></textarea>
+    </label>
+
+    <div class="flex justify-end gap-2 pt-2">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        [text]="true"
+        (onClick)="visible.set(false)"
+      />
+      <p-button type="submit" [label]="task() ? 'Salvar' : 'Criar tarefa'" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>

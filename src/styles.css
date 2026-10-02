@@ -1,1 +1,28 @@
-/* You can add global styles to this file, and also import other style files */
+@layer theme, base, primeng, components, utilities;
+@import 'tailwindcss';
+
+html,
+body {
+  @apply bg-zinc-950 text-zinc-100 antialiased;
+  font-family:
+    'Inter',
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+}
+
+/* Arrastar e soltar (Angular CDK) */
+.cdk-drag-preview {
+  @apply rotate-1 rounded-lg shadow-2xl ring-1 ring-indigo-500/40;
+}
+
+.cdk-drag-placeholder {
+  @apply opacity-30;
+}
+
+.cdk-drag-animating,
+.cdk-drop-list-dragging .cdk-drag:not(.cdk-drag-placeholder) {
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}

@@ -6,6 +6,7 @@
     "env": "node scripts/generate-env.mjs",
     "prestart": "npm run env",
     "start": "ng serve",
+    "dev": "npm start",
     "prebuild": "npm run env",
     "build": "ng build",
     "prewatch": "npm run env",

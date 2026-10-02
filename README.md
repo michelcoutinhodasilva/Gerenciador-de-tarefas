@@ -38,7 +38,7 @@ Fluxo: `View → Controller → Model → Supabase`. O Controller atualiza o est
 
 ```bash
 npm install
-npm start          # abre em http://localhost:4200
+npm run dev        # ou npm start — abre em http://localhost:4200
 ```
 
 > Para testar sem confirmar e-mail: Supabase → Authentication → Sign In / Providers → Email → desative **Confirm email**.

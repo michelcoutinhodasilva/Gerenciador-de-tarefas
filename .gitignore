@@ -42,3 +42,7 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Chaves locais (o environment.ts é gerado a partir do .env)
+.env
+/src/environments/environment.ts

@@ -6,12 +6,12 @@ import { environment } from '../../environments/environment';
 export const SUPABASE_CLIENT = new InjectionToken<SupabaseClient>('SUPABASE_CLIENT', {
   providedIn: 'root',
   factory: () => {
-    const { supabaseUrl, supabaseAnonKey } = environment;
-    if (!supabaseUrl || !supabaseAnonKey) {
+    const { supabaseUrl, supabasePublishableKey } = environment;
+    if (!supabaseUrl || !supabasePublishableKey) {
       throw new Error(
-        'Supabase não configurado: preencha supabaseUrl e supabaseAnonKey em src/environments/environment.ts',
+        'Supabase não configurado: preencha SUPABASE_URL e SUPABASE_PUBLISHABLE_KEY no .env',
       );
     }
-    return createClient(supabaseUrl, supabaseAnonKey);
+    return createClient(supabaseUrl, supabasePublishableKey);
   },
 });

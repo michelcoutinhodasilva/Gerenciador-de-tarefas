@@ -1,0 +1,28 @@
+// Gera src/environments/environment.ts a partir do .env (fonte única das chaves).
+// Roda sozinho antes de start, build, watch e test (veja package.json).
+import { existsSync, writeFileSync } from 'node:fs';
+
+const ENV_FILE = '.env';
+const OUTPUT = 'src/environments/environment.ts';
+const REQUIRED = ['SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY'];
+
+if (existsSync(ENV_FILE)) {
+  process.loadEnvFile(ENV_FILE);
+}
+
+const missing = REQUIRED.filter((name) => !process.env[name]);
+if (missing.length > 0) {
+  console.error(`Faltam variáveis: ${missing.join(', ')}. Copie .env.example para .env e preencha.`);
+  process.exit(1);
+}
+
+writeFileSync(
+  OUTPUT,
+  `// Gerado por scripts/generate-env.mjs a partir do .env. Não edite nem faça commit.
+export const environment = {
+  supabaseUrl: ${JSON.stringify(process.env.SUPABASE_URL)},
+  supabasePublishableKey: ${JSON.stringify(process.env.SUPABASE_PUBLISHABLE_KEY)},
+};
+`,
+);
+console.log(`${OUTPUT} gerado a partir do ${ENV_FILE}.`);

@@ -8,6 +8,8 @@ const tasks: Task[] = [
     title: 'Primeira',
     description: '',
     status: 'doing',
+    priority: 'medium',
+    dueDate: null,
     position: 0,
     createdAt: '2026-10-02',
   },
@@ -16,16 +18,20 @@ const tasks: Task[] = [
     title: 'Segunda',
     description: '',
     status: 'doing',
+    priority: 'medium',
+    dueDate: null,
     position: 1,
     createdAt: '2026-10-02',
   },
 ];
 
-async function setup(items: Task[]) {
+async function setup(items: Task[], filtering = false) {
   const fixture = TestBed.createComponent(KanbanColumnView);
   fixture.componentRef.setInput('status', 'doing');
   fixture.componentRef.setInput('label', 'Em andamento');
   fixture.componentRef.setInput('tasks', items);
+  fixture.componentRef.setInput('today', '2026-10-02');
+  fixture.componentRef.setInput('filtering', filtering);
   await fixture.whenStable();
   return { fixture, element: fixture.nativeElement as HTMLElement };
 }
@@ -43,6 +49,22 @@ describe('KanbanColumnView', () => {
     const { element } = await setup([]);
 
     expect(element.textContent).toContain('Arraste uma tarefa para cá');
+  });
+
+  it('avisa que nada foi encontrado quando há filtro', async () => {
+    const { element } = await setup([], true);
+
+    expect(element.textContent).toContain('Nenhuma tarefa encontrada');
+  });
+
+  it('repassa o pedido de concluir com a tarefa certa', async () => {
+    const { fixture, element } = await setup(tasks);
+    const complete = vi.fn();
+    fixture.componentInstance.complete.subscribe(complete);
+
+    element.querySelectorAll<HTMLButtonElement>('[data-testid="complete"]')[0].click();
+
+    expect(complete).toHaveBeenCalledWith(tasks[0]);
   });
 
   it('repassa o pedido de excluir com a tarefa certa', async () => {

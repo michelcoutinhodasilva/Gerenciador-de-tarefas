@@ -1,10 +1,16 @@
 import { CdkDragDrop, CdkDropListGroup } from '@angular/cdk/drag-drop';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core';
 import { ConfirmationService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { AuthController } from '../../controllers/auth.controller';
 import { TaskController } from '../../controllers/task.controller';
-import { Task, TaskInput, TaskStatus } from '../../models/entities/task';
+import {
+  Task,
+  TASK_FILTER_LABELS,
+  TASK_FILTERS,
+  TaskInput,
+  TaskStatus,
+} from '../../models/entities/task';
 import { KanbanColumnView } from '../components/kanban-column/kanban-column.view';
 import { TaskDialogView } from '../components/task-dialog/task-dialog.view';
 
@@ -24,6 +30,26 @@ export class BoardView implements OnInit {
   protected readonly dialogOpen = signal(false);
   protected readonly editing = signal<Task | null>(null);
   private readonly newTaskStatus = signal<TaskStatus>('todo');
+  private readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('search');
+
+  protected readonly filters = TASK_FILTERS.map((value) => ({
+    value,
+    label: TASK_FILTER_LABELS[value],
+  }));
+
+  protected readonly summary = computed(() => {
+    const counts: Record<TaskStatus, number> = { todo: 0, doing: 0, done: 0 };
+    for (const task of this.tasks.tasks()) {
+      counts[task.status] += 1;
+    }
+    return counts;
+  });
+
+  protected readonly dateLabel = new Intl.DateTimeFormat('pt-BR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(new Date());
 
   ngOnInit(): void {
     this.tasks.load();
@@ -66,20 +92,27 @@ export class BoardView implements OnInit {
     this.tasks.move(event.item.data.id, event.container.data, event.currentIndex);
   }
 
-  /** Atalho estilo Linear: tecla "C" cria uma tarefa. */
+  /** Atalhos estilo Linear: "C" cria uma tarefa e "/" vai para a busca. */
   protected onShortcut(event: KeyboardEvent): void {
     const target = event.target as HTMLElement | null;
     const typing = target?.closest('input, textarea, [contenteditable="true"]');
-    if (
-      event.key.toLowerCase() !== 'c' ||
-      typing ||
-      this.dialogOpen() ||
-      event.ctrlKey ||
-      event.metaKey
-    ) {
+    if (typing || this.dialogOpen() || event.ctrlKey || event.metaKey || event.altKey) {
       return;
     }
-    event.preventDefault();
-    this.openCreate();
+
+    const key = event.key.toLowerCase();
+    if (key === 'c') {
+      event.preventDefault();
+      this.openCreate();
+    } else if (key === '/') {
+      event.preventDefault();
+      this.searchInput()?.nativeElement.focus();
+    }
+  }
+
+  /** Esc na busca limpa o texto e tira o foco. */
+  protected clearSearch(input: HTMLInputElement): void {
+    this.tasks.search.set('');
+    input.blur();
   }
 }

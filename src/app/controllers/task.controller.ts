@@ -2,14 +2,19 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { Notifier } from '../core/notifier';
 import {
   changedPositions,
+  matchesFilter,
+  matchesSearch,
   moveTask,
   nextPosition,
   Task,
+  TASK_FILTERS,
   TASK_STATUS_LABELS,
   TASK_STATUSES,
+  TaskFilter,
   TaskInput,
   TaskStatus,
   tasksByStatus,
+  todayKey,
 } from '../models/entities/task';
 import { TaskModel } from '../models/task.model';
 import { errorMessage } from './error-message';
@@ -32,16 +37,53 @@ export class TaskController {
   readonly tasks = signal<Task[]>([]);
   readonly loading = signal(false);
   readonly saving = signal(false);
+  readonly search = signal('');
+  readonly filter = signal<TaskFilter>('all');
+  /** Data de referência para prazos; renovada a cada carregamento. */
+  readonly today = signal(todayKey());
+
+  /** Com busca ou filtro ativo, a coluna mostra só parte das tarefas. */
+  readonly filtering = computed(() => this.search().trim() !== '' || this.filter() !== 'all');
+
+  private readonly visibleTasks = computed(() =>
+    this.tasks().filter(
+      (task) =>
+        matchesSearch(task, this.search()) && matchesFilter(task, this.filter(), this.today()),
+    ),
+  );
 
   readonly columns = computed<BoardColumn[]>(() =>
     TASK_STATUSES.map((status) => ({
       status,
       label: TASK_STATUS_LABELS[status],
-      tasks: tasksByStatus(this.tasks(), status),
+      tasks: tasksByStatus(this.visibleTasks(), status),
     })),
   );
 
+  /** Quantas tarefas cabem em cada filtro rápido (ignora a busca). */
+  readonly filterCounts = computed(
+    () =>
+      Object.fromEntries(
+        TASK_FILTERS.map((filter) => [
+          filter,
+          this.tasks().filter((task) => matchesFilter(task, filter, this.today())).length,
+        ]),
+      ) as Record<TaskFilter, number>,
+  );
+
+  readonly progress = computed(() => {
+    const total = this.tasks().length;
+    const done = this.tasks().filter((task) => task.status === 'done').length;
+    return { done, total, percent: total ? Math.round((done / total) * 100) : 0 };
+  });
+
+  clearFilters(): void {
+    this.search.set('');
+    this.filter.set('all');
+  }
+
   async load(): Promise<void> {
+    this.today.set(todayKey());
     this.loading.set(true);
     try {
       this.tasks.set(await this.model.list());
@@ -79,21 +121,31 @@ export class TaskController {
     }
   }
 
-  /** Move na tela na hora e desfaz se o banco recusar. */
-  async move(id: string, toStatus: TaskStatus, toIndex: number): Promise<void> {
+  /** Move na tela na hora e desfaz se o banco recusar. Devolve `true` se ficou salvo. */
+  async move(id: string, toStatus: TaskStatus, toIndex: number): Promise<boolean> {
     const before = this.tasks();
     const after = moveTask(before, id, toStatus, toIndex);
     const changes = changedPositions(before, after);
     if (changes.length === 0) {
-      return;
+      return true;
     }
 
     this.tasks.set(after);
     try {
       await this.model.savePositions(changes);
+      return true;
     } catch (error) {
       this.tasks.set(before);
       this.fail(error, 'Não foi possível mover a tarefa.');
+      return false;
+    }
+  }
+
+  /** Atalho: manda a tarefa para o fim de "Concluído". */
+  async complete(id: string): Promise<void> {
+    const end = tasksByStatus(this.tasks(), 'done').length;
+    if (await this.move(id, 'done', end)) {
+      this.notifier.success('Tarefa concluída.');
     }
   }
 

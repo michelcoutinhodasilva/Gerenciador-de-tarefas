@@ -1,15 +1,24 @@
 import { inject, Injectable } from '@angular/core';
 import { SUPABASE_CLIENT } from '../core/supabase.client';
-import { Task, TaskInput, TaskPosition, TaskStatus, validateTaskInput } from './entities/task';
+import {
+  Task,
+  TaskInput,
+  TaskPosition,
+  TaskPriority,
+  TaskStatus,
+  validateTaskInput,
+} from './entities/task';
 
 const TABLE = 'tasks';
-const COLUMNS = 'id, title, description, status, position, created_at';
+const COLUMNS = 'id, title, description, status, priority, due_date, position, created_at';
 
 interface TaskRow {
   id: string;
   title: string;
   description: string;
   status: TaskStatus;
+  priority: TaskPriority;
+  due_date: string | null;
   position: number;
   created_at: string;
 }
@@ -30,18 +39,18 @@ export class TaskModel {
   }
 
   async create(input: TaskInput, status: TaskStatus, position: number): Promise<Task> {
-    const valid = validateTaskInput(input);
+    const row = toRow(validateTaskInput(input));
     const result = await this.db
       .from(TABLE)
-      .insert({ ...valid, status, position })
+      .insert({ ...row, status, position })
       .select(COLUMNS)
       .single();
     return toTask(unwrap<TaskRow>(result));
   }
 
   async update(id: string, input: TaskInput): Promise<Task> {
-    const valid = validateTaskInput(input);
-    const result = await this.db.from(TABLE).update(valid).eq('id', id).select(COLUMNS).single();
+    const row = toRow(validateTaskInput(input));
+    const result = await this.db.from(TABLE).update(row).eq('id', id).select(COLUMNS).single();
     return toTask(unwrap<TaskRow>(result));
   }
 
@@ -67,12 +76,18 @@ function unwrap<T>({ data, error }: QueryResult<unknown>): T {
   return data as T;
 }
 
+function toRow({ title, description, priority, dueDate }: TaskInput) {
+  return { title, description, priority, due_date: dueDate };
+}
+
 function toTask(row: TaskRow): Task {
   return {
     id: row.id,
     title: row.title,
     description: row.description ?? '',
     status: row.status,
+    priority: row.priority ?? 'medium',
+    dueDate: row.due_date ?? null,
     position: row.position,
     createdAt: row.created_at,
   };

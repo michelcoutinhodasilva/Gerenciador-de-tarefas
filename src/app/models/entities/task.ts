@@ -11,6 +11,16 @@ export const TASK_STATUS_LABELS: Readonly<Record<TaskStatus, string>> = {
   done: 'Concluído',
 };
 
+export type TaskPriority = 'low' | 'medium' | 'high';
+
+export const TASK_PRIORITIES: readonly TaskPriority[] = ['low', 'medium', 'high'];
+
+export const TASK_PRIORITY_LABELS: Readonly<Record<TaskPriority, string>> = {
+  low: 'Baixa',
+  medium: 'Média',
+  high: 'Alta',
+};
+
 /** Mantenha igual às regras de supabase/schema.sql. */
 export const TASK_LIMITS = { titleMax: 120, descriptionMax: 2000 } as const;
 
@@ -19,6 +29,9 @@ export interface Task {
   title: string;
   description: string;
   status: TaskStatus;
+  priority: TaskPriority;
+  /** Prazo no formato AAAA-MM-DD, ou `null` sem prazo. */
+  dueDate: string | null;
   position: number;
   createdAt: string;
 }
@@ -26,6 +39,8 @@ export interface Task {
 export interface TaskInput {
   title: string;
   description: string;
+  priority: TaskPriority;
+  dueDate: string | null;
 }
 
 export interface TaskPosition {
@@ -34,9 +49,12 @@ export interface TaskPosition {
   position: number;
 }
 
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
 export function validateTaskInput(input: TaskInput): TaskInput {
   const title = input.title.trim();
   const description = input.description.trim();
+  const dueDate = input.dueDate?.trim() || null;
 
   if (!title) {
     throw new ValidationError('O título é obrigatório.');
@@ -49,7 +67,68 @@ export function validateTaskInput(input: TaskInput): TaskInput {
       `A descrição deve ter no máximo ${TASK_LIMITS.descriptionMax} caracteres.`,
     );
   }
-  return { title, description };
+  if (!TASK_PRIORITIES.includes(input.priority)) {
+    throw new ValidationError('Prioridade inválida.');
+  }
+  if (dueDate && !DATE_PATTERN.test(dueDate)) {
+    throw new ValidationError('Prazo inválido.');
+  }
+  return { title, description, priority: input.priority, dueDate };
+}
+
+/** Data local de hoje no formato AAAA-MM-DD (mesmo formato do prazo). */
+export function todayKey(now = new Date()): string {
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
+export type DueState = 'overdue' | 'today' | 'upcoming';
+
+/** Situação do prazo. Tarefa concluída ou sem prazo não tem alerta (`null`). */
+export function dueState(task: Task, today: string): DueState | null {
+  if (!task.dueDate || task.status === 'done') {
+    return null;
+  }
+  if (task.dueDate < today) {
+    return 'overdue';
+  }
+  return task.dueDate === today ? 'today' : 'upcoming';
+}
+
+export type TaskFilter = 'all' | 'today' | 'overdue' | 'high';
+
+export const TASK_FILTERS: readonly TaskFilter[] = ['all', 'today', 'overdue', 'high'];
+
+export const TASK_FILTER_LABELS: Readonly<Record<TaskFilter, string>> = {
+  all: 'Todas',
+  today: 'Para hoje',
+  overdue: 'Atrasadas',
+  high: 'Alta prioridade',
+};
+
+/** Diz se a tarefa entra no filtro rápido escolhido. */
+export function matchesFilter(task: Task, filter: TaskFilter, today: string): boolean {
+  switch (filter) {
+    case 'all':
+      return true;
+    case 'today':
+      return dueState(task, today) === 'today';
+    case 'overdue':
+      return dueState(task, today) === 'overdue';
+    case 'high':
+      return task.priority === 'high' && task.status !== 'done';
+  }
+}
+
+/** Busca no título e na descrição, sem diferenciar maiúsculas nem acentos. */
+export function matchesSearch(task: Task, search: string): boolean {
+  const term = normalize(search.trim());
+  return !term || normalize(`${task.title} ${task.description}`).includes(term);
+}
+
+function normalize(text: string): string {
+  return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }
 
 /** Tarefas de uma coluna, na ordem em que aparecem. */

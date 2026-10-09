@@ -11,6 +11,12 @@ create table if not exists public.tasks (
   created_at  timestamptz not null default now()
 );
 
+-- Prioridade e prazo (pode rodar de novo em bancos antigos: só cria o que faltar).
+alter table public.tasks
+  add column if not exists priority text not null default 'medium'
+    check (priority in ('low', 'medium', 'high')),
+  add column if not exists due_date date;
+
 create index if not exists tasks_user_status_position_idx
   on public.tasks (user_id, status, position);
 

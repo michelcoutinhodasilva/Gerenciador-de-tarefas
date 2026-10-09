@@ -1,79 +1,145 @@
-<main class="relative grid min-h-dvh place-items-center overflow-hidden px-4">
-  <div
-    class="pointer-events-none absolute -top-40 left-1/2 h-96 w-[40rem] -translate-x-1/2 rounded-full bg-indigo-600/20 blur-3xl"
-    aria-hidden="true"
-  ></div>
-
-  <section class="relative w-full max-w-sm">
-    <div class="mb-8 flex flex-col items-center gap-3 text-center">
-      <div
-        class="grid size-10 place-items-center rounded-lg bg-indigo-500 text-lg font-semibold text-white"
-      >
-        T
+<main class="auth-shell">
+  <section class="auth-showcase" aria-label="Gerenciador de tarefas">
+    <div class="auth-showcase-inner">
+      <div class="auth-brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m7 12.5 3.2 3.2L17.5 8" />
+            <path d="M12 22a10 10 0 1 0-10-10 10 10 0 0 0 10 10Z" />
+          </svg>
+        </span>
+        <span class="auth-brand-copy">
+          <strong>Tarefas</strong>
+          <span>ESPAÇO DE TRABALHO</span>
+        </span>
       </div>
-      <h1 class="text-xl font-semibold tracking-tight text-zinc-100">
-        {{ mode() === 'signIn' ? 'Entre na sua conta' : 'Crie sua conta' }}
-      </h1>
-      <p class="text-sm text-zinc-500">Organize suas tarefas em um quadro Kanban.</p>
+
+      <div class="showcase-message">
+        <span class="showcase-kicker"><span></span>CLAREZA PARA O DIA A DIA</span>
+        <h2>O próximo passo<br />começa aqui.</h2>
+        <p>Organize prioridades, acompanhe prazos e mantenha o trabalho em movimento.</p>
+      </div>
+
+      <div class="product-preview" aria-hidden="true">
+        <div class="preview-header">
+          <div>
+            <span>MEU QUADRO</span>
+            <strong>Esta semana</strong>
+          </div>
+          <span class="preview-date">SEMANA ATUAL</span>
+        </div>
+        <div class="preview-progress">
+          <span></span>
+        </div>
+        <div class="preview-columns">
+          <div class="preview-column">
+            <div class="preview-column-heading">
+              <span class="preview-dot preview-dot--todo"></span>
+              <span>A fazer</span>
+              <small>02</small>
+            </div>
+            <div class="preview-task">
+              <span class="preview-task-mark"></span>
+              <span>Preparar pauta da reunião<small>HOJE</small></span>
+            </div>
+            <div class="preview-task preview-task--compact">
+              <span class="preview-task-mark"></span>
+              <span>Revisar proposta</span>
+            </div>
+          </div>
+          <div class="preview-column">
+            <div class="preview-column-heading">
+              <span class="preview-dot preview-dot--doing"></span>
+              <span>Em andamento</span>
+              <small>01</small>
+            </div>
+            <div class="preview-task">
+              <span class="preview-task-mark preview-task-mark--done"></span>
+              <span>Fechar orçamento<small>PRIORIDADE ALTA</small></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="showcase-footer">
+        <span class="showcase-footer-line"></span>
+        <span>Seu trabalho, com espaço para avançar.</span>
+      </div>
     </div>
+  </section>
 
-    <form
-      [formGroup]="form"
-      (ngSubmit)="submit()"
-      class="flex flex-col gap-4 rounded-xl border border-white/5 bg-zinc-900/60 p-6 shadow-2xl backdrop-blur"
-    >
-      <label class="flex flex-col gap-1.5">
-        <span class="text-sm font-medium text-zinc-300">E-mail</span>
-        <input
-          pInputText
-          type="email"
-          formControlName="email"
-          data-testid="email"
-          placeholder="voce@empresa.com"
-          autocomplete="email"
-        />
-      </label>
+  <section class="auth-content">
+    <div class="auth-card">
+      <div class="auth-mobile-brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m7 12.5 3.2 3.2L17.5 8" />
+            <path d="M12 22a10 10 0 1 0-10-10 10 10 0 0 0 10 10Z" />
+          </svg>
+        </span>
+        <strong>Tarefas</strong>
+      </div>
 
-      <label class="flex flex-col gap-1.5">
-        <span class="text-sm font-medium text-zinc-300">Senha</span>
-        <input
-          pInputText
-          type="password"
-          formControlName="password"
-          data-testid="password"
-          placeholder="••••••••"
-          [attr.autocomplete]="mode() === 'signIn' ? 'current-password' : 'new-password'"
-        />
-      </label>
-
-      @if (auth.error(); as error) {
-        <p
-          data-testid="error"
-          role="alert"
-          class="rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-400"
-        >
-          {{ error }}
+      <div class="auth-heading">
+        <span class="auth-kicker">{{
+          mode() === 'signIn' ? 'ACESSO À CONTA' : 'NOVO CADASTRO'
+        }}</span>
+        <h1>{{ mode() === 'signIn' ? 'Entre na sua conta' : 'Crie sua conta' }}</h1>
+        <p>
+          {{
+            mode() === 'signIn'
+              ? 'Acesse seu quadro e continue de onde parou.'
+              : 'Crie seu acesso e organize seu fluxo de trabalho.'
+          }}
         </p>
-      }
+      </div>
 
-      <p-button
-        type="submit"
-        [label]="mode() === 'signIn' ? 'Entrar' : 'Criar conta'"
-        [loading]="auth.loading()"
-        [fluid]="true"
-      />
-    </form>
+      <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+        <label class="auth-field">
+          <span>E-mail</span>
+          <input
+            pInputText
+            class="auth-input"
+            type="email"
+            formControlName="email"
+            data-testid="email"
+            placeholder="voce@empresa.com"
+            autocomplete="email"
+          />
+        </label>
 
-    <p class="mt-6 text-center text-sm text-zinc-500">
-      {{ mode() === 'signIn' ? 'Ainda não tem conta?' : 'Já tem conta?' }}
-      <button
-        type="button"
-        data-testid="toggle-mode"
-        class="font-medium text-indigo-400 hover:text-indigo-300"
-        (click)="toggleMode()"
-      >
-        {{ mode() === 'signIn' ? 'Cadastre-se' : 'Entrar' }}
-      </button>
-    </p>
+        <label class="auth-field">
+          <span>Senha</span>
+          <input
+            pInputText
+            class="auth-input"
+            type="password"
+            formControlName="password"
+            data-testid="password"
+            placeholder="••••••••"
+            [attr.autocomplete]="mode() === 'signIn' ? 'current-password' : 'new-password'"
+          />
+        </label>
+
+        @if (auth.error(); as error) {
+          <p data-testid="error" role="alert" class="auth-error">{{ error }}</p>
+        }
+
+        <p-button
+          class="auth-submit"
+          type="submit"
+          [label]="mode() === 'signIn' ? 'Entrar' : 'Criar conta'"
+          [loading]="auth.loading()"
+          [fluid]="true"
+        />
+      </form>
+
+      <p class="auth-switch">
+        {{ mode() === 'signIn' ? 'Ainda não tem conta?' : 'Já tem conta?' }}
+        <button type="button" data-testid="toggle-mode" (click)="toggleMode()">
+          {{ mode() === 'signIn' ? 'Cadastre-se' : 'Entrar' }}
+        </button>
+      </p>
+    </div>
   </section>
 </main>

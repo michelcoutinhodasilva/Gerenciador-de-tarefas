@@ -1,24 +1,25 @@
-<section
-  class="flex w-80 shrink-0 flex-col rounded-xl border border-white/5 bg-zinc-900/50"
-  [attr.aria-label]="label()"
->
-  <header class="flex items-center justify-between px-3 pb-2 pt-3">
-    <div class="flex items-center gap-2">
-      <span class="size-2 rounded-full" [class]="dotColor()"></span>
-      <h2 class="text-sm font-medium text-zinc-200">{{ label() }}</h2>
-      <span data-testid="count" class="text-xs tabular-nums text-zinc-500">{{
-        tasks().length
-      }}</span>
+<section class="kanban-column" [attr.data-status]="status()" [attr.aria-label]="label()">
+  <header class="column-header">
+    <div class="column-title-group">
+      <span class="column-status-dot" [class]="dotColor()" aria-hidden="true"></span>
+      <h2>{{ label() }}</h2>
+      <span data-testid="count" class="column-count">{{ tasks().length }}</span>
     </div>
     <button
       type="button"
       data-testid="add"
-      class="rounded p-1 text-zinc-500 hover:bg-white/10 hover:text-zinc-100"
+      class="column-add"
       [attr.aria-label]="'Nova tarefa em ' + label()"
       title="Nova tarefa"
       (click)="add.emit()"
     >
-      <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        aria-hidden="true"
+      >
         <path d="M12 5v14M5 12h14" />
       </svg>
     </button>
@@ -27,22 +28,23 @@
   <div
     cdkDropList
     [cdkDropListData]="status()"
+    [cdkDropListDisabled]="filtering()"
     (cdkDropListDropped)="dropped.emit($event)"
-    class="flex min-h-32 flex-1 flex-col gap-2 overflow-y-auto px-2 pb-3"
+    class="column-cards"
   >
     @for (task of tasks(); track task.id) {
       <app-task-card
         cdkDrag
         [cdkDragData]="task"
         [task]="task"
+        [today]="today()"
         (edit)="edit.emit(task)"
         (remove)="remove.emit(task)"
+        (complete)="complete.emit(task)"
       />
     } @empty {
-      <p
-        class="rounded-lg border border-dashed border-white/10 py-6 text-center text-xs text-zinc-500"
-      >
-        Arraste uma tarefa para cá
+      <p class="column-empty">
+        {{ filtering() ? 'Nenhuma tarefa encontrada' : 'Arraste uma tarefa para cá' }}
       </p>
     }
   </div>

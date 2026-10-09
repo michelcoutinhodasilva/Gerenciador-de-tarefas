@@ -1,64 +1,304 @@
-<div class="flex h-dvh flex-col">
-  <header class="flex items-center justify-between border-b border-white/5 px-6 py-3">
-    <div class="flex items-center gap-3">
-      <div
-        class="grid size-7 place-items-center rounded-md bg-indigo-500 text-sm font-semibold text-white"
-      >
-        T
-      </div>
-      <h1 class="text-sm font-semibold tracking-tight text-zinc-100">Gerenciador de Tarefas</h1>
+<div class="workspace-shell">
+  <aside class="workspace-sidebar" aria-label="Navegação do espaço de trabalho">
+    <div class="brand-lockup">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="m7 12.5 3.2 3.2L17.5 8" />
+          <path d="M12 22a10 10 0 1 0-10-10 10 10 0 0 0 10 10Z" />
+        </svg>
+      </span>
+      <span class="brand-copy">
+        <strong>Tarefas</strong>
+        <span>ESPAÇO DE TRABALHO</span>
+      </span>
     </div>
 
-    <div class="flex items-center gap-3">
-      <span class="hidden text-xs text-zinc-500 sm:inline">{{ auth.user()?.email }}</span>
-      <p-button
-        label="Sair"
-        severity="secondary"
-        [text]="true"
-        size="small"
-        (onClick)="auth.signOut()"
-      />
+    <div class="workspace-switcher">
+      <span class="workspace-glyph" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="4" y="4" width="16" height="16" rx="4" />
+          <path d="M8 9h8M8 13h5" />
+        </svg>
+      </span>
+      <span class="workspace-switcher-copy">
+        <span>MEU ESPAÇO</span>
+        <strong>Quadro pessoal</strong>
+      </span>
+      <span class="workspace-switcher-dot" aria-hidden="true"></span>
     </div>
-  </header>
 
-  <div class="flex items-center justify-between px-6 pb-2 pt-5">
-    <div>
-      <h2 class="text-lg font-semibold tracking-tight text-zinc-100">Quadro</h2>
-      <p class="text-xs text-zinc-500">
-        Arraste os cartões entre as colunas. Pressione
-        <kbd
-          class="rounded border border-white/10 bg-white/5 px-1 font-mono text-[10px] text-zinc-300"
-          >C</kbd
+    <nav class="sidebar-navigation" aria-label="Filtros do quadro">
+      <p class="sidebar-section-label">ACOMPANHAR</p>
+      @for (item of filters; track item.value) {
+        <button
+          type="button"
+          class="sidebar-nav-item"
+          [class.active]="tasks.filter() === item.value"
+          [attr.data-testid]="'filter-' + item.value"
+          [attr.aria-pressed]="tasks.filter() === item.value"
+          (click)="tasks.filter.set(item.value)"
         >
-        para criar.
-      </p>
-    </div>
-    <p-button label="Nova tarefa" size="small" (onClick)="openCreate()" />
-  </div>
+          <svg
+            class="sidebar-nav-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            aria-hidden="true"
+          >
+            @switch (item.value) {
+              @case ('all') {
+                <rect x="4" y="4" width="6" height="6" rx="1.5" />
+                <rect x="14" y="4" width="6" height="6" rx="1.5" />
+                <rect x="4" y="14" width="6" height="6" rx="1.5" />
+                <rect x="14" y="14" width="6" height="6" rx="1.5" />
+              }
+              @case ('today') {
+                <rect x="3.5" y="5" width="17" height="16" rx="2.5" />
+                <path d="M8 3v4M16 3v4M3.5 10h17M8 14h.01M12 14h.01M16 14h.01" />
+              }
+              @case ('overdue') {
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3 2" />
+              }
+              @case ('high') {
+                <path d="M5 21V5m0 0c4-3 7 3 14 0v10c-7 3-10-3-14 0" />
+              }
+            }
+          </svg>
+          <span class="sidebar-nav-label">{{ item.label }}</span>
+          <span
+            class="sidebar-nav-count"
+            [class.has-items]="item.value === 'overdue' && tasks.filterCounts().overdue > 0"
+            >{{ tasks.filterCounts()[item.value] }}</span
+          >
+        </button>
+      }
+    </nav>
 
-  <main class="min-h-0 flex-1 overflow-x-auto px-6 pb-6 pt-3">
-    @if (tasks.loading()) {
-      <div class="flex gap-4" aria-busy="true">
-        @for (column of tasks.columns(); track column.status) {
-          <div class="h-64 w-80 shrink-0 animate-pulse rounded-xl bg-zinc-900/50"></div>
-        }
+    <div class="sidebar-bottom">
+      <section class="sidebar-progress" aria-label="Progresso geral do quadro">
+        <div class="sidebar-progress-heading">
+          <span>Progresso geral</span>
+          <strong>{{ tasks.progress().percent }}%</strong>
+        </div>
+        <div class="sidebar-progress-track" aria-hidden="true">
+          <span [style.width.%]="tasks.progress().percent"></span>
+        </div>
+        <p>{{ tasks.progress().done }} de {{ tasks.progress().total }} concluídas</p>
+      </section>
+
+      <div class="sidebar-account">
+        <span class="account-avatar" aria-hidden="true">
+          {{ auth.user()?.email?.slice(0, 1)?.toUpperCase() ?? 'U' }}
+        </span>
+        <span class="account-copy" [title]="auth.user()?.email ?? ''">
+          <strong>Minha conta</strong>
+          <span>{{ auth.user()?.email }}</span>
+        </span>
+        <button
+          type="button"
+          class="account-signout"
+          aria-label="Sair da conta"
+          title="Sair"
+          (click)="auth.signOut()"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            aria-hidden="true"
+          >
+            <path d="M10 17l5-5-5-5M15 12H3" />
+            <path d="M12 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5" />
+          </svg>
+        </button>
       </div>
-    } @else {
-      <div cdkDropListGroup class="flex h-full items-start gap-4">
-        @for (column of tasks.columns(); track column.status) {
-          <app-kanban-column
-            class="max-h-full"
-            [status]="column.status"
-            [label]="column.label"
-            [tasks]="column.tasks"
-            (add)="openCreate(column.status)"
-            (edit)="openEdit($event)"
-            (remove)="confirmRemove($event)"
-            (dropped)="drop($event)"
-          />
-        }
+    </div>
+  </aside>
+
+  <main class="workspace-main">
+    <header class="workspace-topbar">
+      <div class="breadcrumb" aria-label="Localização atual">
+        <span>Meu espaço</span>
+        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="m6 3 5 5-5 5" />
+        </svg>
+        <strong>Quadro</strong>
       </div>
-    }
+      <div class="topbar-date">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          aria-hidden="true"
+        >
+          <rect x="3.5" y="5" width="17" height="16" rx="2.5" />
+          <path d="M8 3v4M16 3v4M3.5 10h17" />
+        </svg>
+        <span>{{ dateLabel }}</span>
+      </div>
+    </header>
+
+    <div class="board-content">
+      <section class="board-intro">
+        <div>
+          <div class="page-eyebrow"><span></span>SEU ESPAÇO DE TRABALHO</div>
+          <h1>Quadro de tarefas</h1>
+          <p>Acompanhe o que está em andamento e o que vem a seguir.</p>
+        </div>
+        <p-button
+          class="board-primary-action"
+          label="Nova tarefa"
+          size="small"
+          (onClick)="openCreate()"
+        />
+      </section>
+
+      <section class="summary-grid" aria-label="Resumo do quadro">
+        <article class="summary-card">
+          <div class="summary-card-top">
+            <span class="summary-card-label">Tarefas abertas</span>
+            <span class="summary-card-icon summary-card-icon--ink" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="4" y="4" width="16" height="16" rx="3" />
+                <path d="M8 9h8M8 13h5" />
+              </svg>
+            </span>
+          </div>
+          <div class="summary-card-value">
+            <strong>{{ summary().todo + summary().doing }}</strong>
+            <span>{{ summary().todo }} a fazer · {{ summary().doing }} em andamento</span>
+          </div>
+        </article>
+
+        <article class="summary-card">
+          <div class="summary-card-top">
+            <span class="summary-card-label">Em andamento</span>
+            <span class="summary-card-icon summary-card-icon--amber" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="8.5" />
+                <path d="M12 7v5l3.5 2" />
+              </svg>
+            </span>
+          </div>
+          <div class="summary-card-value">
+            <strong>{{ summary().doing }}</strong>
+            <span>de {{ tasks.progress().total }} no quadro</span>
+          </div>
+        </article>
+
+        <article class="summary-card summary-card--completion">
+          <div class="summary-card-top">
+            <span class="summary-card-label">Conclusão geral</span>
+            <span class="summary-card-icon summary-card-icon--green" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="m5 12.5 4.5 4.5L19 7" />
+              </svg>
+            </span>
+          </div>
+          <div class="summary-card-value summary-card-value--completion">
+            <strong>{{ tasks.progress().percent }}<small>%</small></strong>
+            <span>{{ tasks.progress().done }} de {{ tasks.progress().total }} concluídas</span>
+          </div>
+          <div class="summary-progress-track" aria-label="Progresso de conclusão">
+            <span [style.width.%]="tasks.progress().percent"></span>
+          </div>
+        </article>
+      </section>
+
+      <section class="board-section" aria-labelledby="board-section-title">
+        <div class="board-section-header">
+          <div class="board-section-heading">
+            <h2 id="board-section-title">Fluxo de trabalho</h2>
+            <span>Arraste as tarefas para atualizar o andamento.</span>
+          </div>
+          <div class="board-tools">
+            <label class="board-search" [class.board-search--filled]="tasks.search()">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                aria-hidden="true"
+              >
+                <circle cx="10.8" cy="10.8" r="6.8" />
+                <path d="m16 16 4 4" />
+              </svg>
+              <input
+                #search
+                type="search"
+                data-testid="search"
+                placeholder="Buscar no quadro"
+                aria-label="Buscar tarefas"
+                [value]="tasks.search()"
+                (input)="tasks.search.set(search.value)"
+                (keydown.escape)="clearSearch(search)"
+              />
+              @if (tasks.search()) {
+                <button
+                  type="button"
+                  class="search-clear"
+                  aria-label="Limpar busca"
+                  (click)="clearSearch(search)"
+                >
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="m6 6 8 8m0-8-8 8" />
+                  </svg>
+                </button>
+              } @else {
+                <kbd>/</kbd>
+              }
+            </label>
+            @if (tasks.filtering()) {
+              <div class="active-filter-note">
+                <span>Filtro ativo</span>
+                <button type="button" data-testid="clear-filters" (click)="tasks.clearFilters()">
+                  Limpar
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="board-scroll">
+          @if (tasks.loading()) {
+            <div
+              class="board-columns board-skeleton"
+              aria-busy="true"
+              aria-label="Carregando tarefas"
+            >
+              @for (column of tasks.columns(); track column.status) {
+                <div class="skeleton-column">
+                  <div class="skeleton-heading"></div>
+                  <div class="skeleton-card"></div>
+                  <div class="skeleton-card skeleton-card--short"></div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div cdkDropListGroup class="board-columns">
+              @for (column of tasks.columns(); track column.status) {
+                <app-kanban-column
+                  [status]="column.status"
+                  [label]="column.label"
+                  [tasks]="column.tasks"
+                  [today]="tasks.today()"
+                  [filtering]="tasks.filtering()"
+                  (add)="openCreate(column.status)"
+                  (edit)="openEdit($event)"
+                  (remove)="confirmRemove($event)"
+                  (complete)="tasks.complete($event.id)"
+                  (dropped)="drop($event)"
+                />
+              }
+            </div>
+          }
+        </div>
+      </section>
+    </div>
   </main>
 </div>
 

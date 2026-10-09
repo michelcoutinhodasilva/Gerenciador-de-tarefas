@@ -1,13 +1,24 @@
 import { TestBed } from '@angular/core/testing';
 import { Notifier } from '../core/notifier';
-import { Task, TaskStatus } from '../models/entities/task';
+import { Task, TaskInput, TaskStatus, todayKey } from '../models/entities/task';
 import { ValidationError } from '../models/entities/validation-error';
 import { TaskModel } from '../models/task.model';
 import { TaskController } from './task.controller';
 
 function task(id: string, status: TaskStatus = 'todo', position = 0): Task {
-  return { id, title: id, description: '', status, position, createdAt: '2026-10-02T00:00:00Z' };
+  return {
+    id,
+    title: id,
+    description: '',
+    status,
+    priority: 'medium',
+    dueDate: null,
+    position,
+    createdAt: '2026-10-02T00:00:00Z',
+  };
 }
+
+const empty: TaskInput = { title: '', description: '', priority: 'medium', dueDate: null };
 
 function setup(initial: Task[] = []) {
   const model = {
@@ -55,10 +66,10 @@ describe('TaskController', () => {
     await controller.load();
     model.create.mockResolvedValue(task('b', 'todo', 1));
 
-    const saved = await controller.create({ title: 'b', description: '' }, 'todo');
+    const saved = await controller.create({ ...empty, title: 'b' }, 'todo');
 
     expect(saved).toBe(true);
-    expect(model.create).toHaveBeenCalledWith({ title: 'b', description: '' }, 'todo', 1);
+    expect(model.create).toHaveBeenCalledWith({ ...empty, title: 'b' }, 'todo', 1);
     expect(controller.tasks().map((item) => item.id)).toEqual(['a', 'b']);
     expect(notifier.success).toHaveBeenCalledWith('Tarefa criada.');
   });
@@ -67,7 +78,7 @@ describe('TaskController', () => {
     const { controller, model, notifier } = setup();
     model.create.mockRejectedValue(new ValidationError('O título é obrigatório.'));
 
-    const saved = await controller.create({ title: '', description: '' });
+    const saved = await controller.create(empty);
 
     expect(saved).toBe(false);
     expect(notifier.error).toHaveBeenCalledWith('O título é obrigatório.');
@@ -79,7 +90,7 @@ describe('TaskController', () => {
     await controller.load();
     model.update.mockResolvedValue({ ...task('a'), title: 'Novo título' });
 
-    await controller.update('a', { title: 'Novo título', description: '' });
+    await controller.update('a', { ...empty, title: 'Novo título' });
 
     expect(controller.tasks()[0].title).toBe('Novo título');
   });
@@ -139,5 +150,72 @@ describe('TaskController', () => {
     await controller.move('a', 'doing', 0);
 
     expect(controller.tasks()[0].status).toBe('todo');
+  });
+
+  it('conclui a tarefa mandando para o fim de "Concluído"', async () => {
+    const { controller, model, notifier } = setup([task('a', 'todo', 0), task('c', 'done', 0)]);
+    await controller.load();
+
+    await controller.complete('a');
+
+    expect(controller.columns()[2].tasks.map((item) => item.id)).toEqual(['c', 'a']);
+    expect(model.savePositions).toHaveBeenCalledWith([{ id: 'a', status: 'done', position: 1 }]);
+    expect(notifier.success).toHaveBeenCalledWith('Tarefa concluída.');
+  });
+
+  it('não avisa sucesso se não conseguir concluir', async () => {
+    const { controller, model, notifier } = setup([task('a')]);
+    await controller.load();
+    model.savePositions.mockRejectedValue(new Error('offline'));
+
+    await controller.complete('a');
+
+    expect(notifier.success).not.toHaveBeenCalled();
+    expect(controller.tasks()[0].status).toBe('todo');
+  });
+
+  describe('busca, filtros e resumo', () => {
+    const overdue = { ...task('Atrasada'), dueDate: '2000-01-01' };
+    const forToday = { ...task('Hoje', 'doing'), dueDate: todayKey(), priority: 'high' as const };
+    const finished = { ...task('Pronta', 'done'), dueDate: '2000-01-01' };
+
+    async function loaded() {
+      const ctx = setup([overdue, forToday, finished]);
+      await ctx.controller.load();
+      return ctx.controller;
+    }
+
+    const visible = (controller: TaskController) =>
+      controller.columns().flatMap((column) => column.tasks.map((item) => item.id));
+
+    it('conta as tarefas de cada filtro rápido', async () => {
+      const controller = await loaded();
+
+      expect(controller.filterCounts()).toEqual({ all: 3, today: 1, overdue: 1, high: 1 });
+      expect(controller.progress()).toEqual({ done: 1, total: 3, percent: 33 });
+    });
+
+    it('mostra só as tarefas do filtro e da busca escolhidos', async () => {
+      const controller = await loaded();
+
+      controller.filter.set('overdue');
+      expect(visible(controller)).toEqual(['Atrasada']);
+      expect(controller.filtering()).toBe(true);
+
+      controller.filter.set('all');
+      controller.search.set('pron');
+      expect(visible(controller)).toEqual(['Pronta']);
+    });
+
+    it('limpa busca e filtro de uma vez', async () => {
+      const controller = await loaded();
+      controller.filter.set('high');
+      controller.search.set('x');
+
+      controller.clearFilters();
+
+      expect(controller.filtering()).toBe(false);
+      expect(visible(controller)).toHaveLength(3);
+    });
   });
 });

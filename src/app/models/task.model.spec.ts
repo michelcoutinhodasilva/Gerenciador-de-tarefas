@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { SUPABASE_CLIENT } from '../core/supabase.client';
+import { TaskInput } from './entities/task';
 import { ValidationError } from './entities/validation-error';
 import { TaskModel } from './task.model';
 
@@ -24,9 +25,13 @@ const row = {
   title: 'Revisar',
   description: 'detalhes',
   status: 'todo',
+  priority: 'high',
+  due_date: '2026-10-05',
   position: 0,
   created_at: '2026-10-02T00:00:00Z',
 };
+
+const empty: TaskInput = { title: '', description: '', priority: 'medium', dueDate: null };
 
 function setup(result: Result) {
   const fake = fakeSupabase(result);
@@ -48,6 +53,8 @@ describe('TaskModel', () => {
         title: 'Revisar',
         description: 'detalhes',
         status: 'todo',
+        priority: 'high',
+        dueDate: '2026-10-05',
         position: 0,
         createdAt: '2026-10-02T00:00:00Z',
       },
@@ -57,11 +64,17 @@ describe('TaskModel', () => {
   it('cria a tarefa com os dados já validados', async () => {
     const { model, query } = setup({ data: row, error: null });
 
-    const task = await model.create({ title: '  Revisar ', description: 'detalhes' }, 'todo', 3);
+    const task = await model.create(
+      { title: '  Revisar ', description: 'detalhes', priority: 'high', dueDate: '2026-10-05' },
+      'todo',
+      3,
+    );
 
     expect(query['insert']).toHaveBeenCalledWith({
       title: 'Revisar',
       description: 'detalhes',
+      priority: 'high',
+      due_date: '2026-10-05',
       status: 'todo',
       position: 3,
     });
@@ -71,7 +84,7 @@ describe('TaskModel', () => {
   it('não chama o banco quando o título é inválido', async () => {
     const { model, db } = setup({ data: row, error: null });
 
-    await expect(model.create({ title: ' ', description: '' }, 'todo', 0)).rejects.toThrow(
+    await expect(model.create({ ...empty, title: ' ' }, 'todo', 0)).rejects.toThrow(
       ValidationError,
     );
     expect(db.from).not.toHaveBeenCalled();
@@ -80,9 +93,14 @@ describe('TaskModel', () => {
   it('atualiza a tarefa pelo id', async () => {
     const { model, query } = setup({ data: row, error: null });
 
-    await model.update('1', { title: 'Revisar', description: '' });
+    await model.update('1', { ...empty, title: 'Revisar' });
 
-    expect(query['update']).toHaveBeenCalledWith({ title: 'Revisar', description: '' });
+    expect(query['update']).toHaveBeenCalledWith({
+      title: 'Revisar',
+      description: '',
+      priority: 'medium',
+      due_date: null,
+    });
     expect(query['eq']).toHaveBeenCalledWith('id', '1');
   });
 

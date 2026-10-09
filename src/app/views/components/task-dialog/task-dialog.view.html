@@ -1,4 +1,5 @@
 <p-dialog
+  styleClass="task-form-dialog"
   [(visible)]="visible"
   [header]="task() ? 'Editar tarefa' : 'Nova tarefa'"
   [modal]="true"
@@ -6,11 +7,12 @@
   [dismissableMask]="true"
   [style]="{ width: '32rem', maxWidth: 'calc(100vw - 2rem)' }"
 >
-  <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4 pt-1">
-    <label class="flex flex-col gap-1.5">
-      <span class="text-sm font-medium text-zinc-300">Título</span>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="task-dialog-form">
+    <label class="form-field">
+      <span class="form-field-label">Título</span>
       <input
         pInputText
+        class="form-input"
         formControlName="title"
         data-testid="title"
         placeholder="Ex.: Revisar proposta do cliente"
@@ -20,12 +22,13 @@
       />
     </label>
 
-    <label class="flex flex-col gap-1.5">
-      <span class="text-sm font-medium text-zinc-300">
-        Descrição <span class="font-normal text-zinc-500">(opcional)</span>
+    <label class="form-field">
+      <span class="form-field-label">
+        Descrição <span class="form-field-optional">(opcional)</span>
       </span>
       <textarea
         pTextarea
+        class="form-input form-textarea"
         formControlName="description"
         data-testid="description"
         rows="5"
@@ -34,14 +37,62 @@
       ></textarea>
     </label>
 
-    <div class="flex justify-end gap-2 pt-2">
+    <div class="task-dialog-options">
+      <div class="form-field">
+        <span id="priority-label" class="form-field-label">Prioridade</span>
+        <p-selectbutton
+          formControlName="priority"
+          data-testid="priority"
+          ariaLabelledBy="priority-label"
+          [options]="priorities"
+          optionLabel="label"
+          optionValue="value"
+          [allowEmpty]="false"
+          size="small"
+        />
+      </div>
+
+      <label class="form-field">
+        <span class="form-field-label">
+          Prazo <span class="form-field-optional">(opcional)</span>
+        </span>
+        <input
+          pInputText
+          class="form-input form-date-input"
+          type="date"
+          formControlName="dueDate"
+          data-testid="due-date"
+        />
+      </label>
+    </div>
+    <div class="quick-date-row">
+      <button type="button" class="quick-date-button" (click)="setDue(0)">Hoje</button>
+      <button type="button" class="quick-date-button" (click)="setDue(1)">Amanhã</button>
+      @if (form.controls.dueDate.value) {
+        <button
+          type="button"
+          class="quick-date-button quick-date-button--muted"
+          (click)="form.controls.dueDate.setValue('')"
+        >
+          Sem prazo
+        </button>
+      }
+    </div>
+
+    <div class="task-dialog-actions">
       <p-button
+        class="dialog-cancel-action"
         label="Cancelar"
         severity="secondary"
         [text]="true"
         (onClick)="visible.set(false)"
       />
-      <p-button type="submit" [label]="task() ? 'Salvar' : 'Criar tarefa'" [loading]="saving()" />
+      <p-button
+        class="dialog-save-action"
+        type="submit"
+        [label]="task() ? 'Salvar' : 'Criar tarefa'"
+        [loading]="saving()"
+      />
     </div>
   </form>
 </p-dialog>

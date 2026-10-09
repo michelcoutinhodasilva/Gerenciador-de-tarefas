@@ -1,17 +1,38 @@
 import {
   changedPositions,
+  dueState,
+  matchesFilter,
+  matchesSearch,
   moveTask,
   nextPosition,
   Task,
   TASK_LIMITS,
+  TaskInput,
+  TaskPriority,
   TaskStatus,
   tasksByStatus,
+  todayKey,
   validateTaskInput,
 } from './task';
 import { ValidationError } from './validation-error';
 
+const TODAY = '2026-10-02';
+
+function input(fields: Partial<TaskInput>): TaskInput {
+  return { title: 'ok', description: '', priority: 'medium', dueDate: null, ...fields };
+}
+
 function task(id: string, status: TaskStatus, position: number): Task {
-  return { id, title: id, description: '', status, position, createdAt: '2026-10-02T00:00:00Z' };
+  return {
+    id,
+    title: id,
+    description: '',
+    status,
+    priority: 'medium',
+    dueDate: null,
+    position,
+    createdAt: '2026-10-02T00:00:00Z',
+  };
 }
 
 const positionsOf = (tasks: Task[], status: TaskStatus) =>
@@ -20,24 +41,77 @@ const positionsOf = (tasks: Task[], status: TaskStatus) =>
 describe('Task (entidade)', () => {
   describe('validateTaskInput', () => {
     it('remove espaços do título e da descrição', () => {
-      expect(validateTaskInput({ title: '  Revisar  ', description: ' detalhes ' })).toEqual({
-        title: 'Revisar',
-        description: 'detalhes',
-      });
+      expect(validateTaskInput(input({ title: '  Revisar  ', description: ' detalhes ' }))).toEqual(
+        { title: 'Revisar', description: 'detalhes', priority: 'medium', dueDate: null },
+      );
     });
 
     it('recusa título vazio', () => {
-      expect(() => validateTaskInput({ title: '   ', description: '' })).toThrow(ValidationError);
+      expect(() => validateTaskInput(input({ title: '   ' }))).toThrow(ValidationError);
     });
 
     it('recusa título maior que o limite', () => {
       const title = 'a'.repeat(TASK_LIMITS.titleMax + 1);
-      expect(() => validateTaskInput({ title, description: '' })).toThrow(/no máximo/);
+      expect(() => validateTaskInput(input({ title }))).toThrow(/no máximo/);
     });
 
     it('recusa descrição maior que o limite', () => {
       const description = 'a'.repeat(TASK_LIMITS.descriptionMax + 1);
-      expect(() => validateTaskInput({ title: 'ok', description })).toThrow(ValidationError);
+      expect(() => validateTaskInput(input({ description }))).toThrow(ValidationError);
+    });
+
+    it('recusa prioridade desconhecida', () => {
+      const priority = 'urgente' as TaskPriority;
+      expect(() => validateTaskInput(input({ priority }))).toThrow('Prioridade inválida.');
+    });
+
+    it('aceita prazo AAAA-MM-DD e trata vazio como sem prazo', () => {
+      expect(validateTaskInput(input({ dueDate: '2026-10-05' })).dueDate).toBe('2026-10-05');
+      expect(validateTaskInput(input({ dueDate: '' })).dueDate).toBeNull();
+    });
+
+    it('recusa prazo em outro formato', () => {
+      expect(() => validateTaskInput(input({ dueDate: '05/10/2026' }))).toThrow('Prazo inválido.');
+    });
+  });
+
+  describe('prazo, filtros e busca', () => {
+    const withDue = (dueDate: string, status: TaskStatus = 'todo'): Task => ({
+      ...task('t', status, 0),
+      dueDate,
+    });
+
+    it('todayKey usa a data local no formato do prazo', () => {
+      expect(todayKey(new Date(2026, 0, 5, 23, 30))).toBe('2026-01-05');
+    });
+
+    it('classifica o prazo em atrasada, hoje ou futura', () => {
+      expect(dueState(withDue('2026-10-01'), TODAY)).toBe('overdue');
+      expect(dueState(withDue(TODAY), TODAY)).toBe('today');
+      expect(dueState(withDue('2026-10-03'), TODAY)).toBe('upcoming');
+    });
+
+    it('não avisa prazo de tarefa concluída ou sem prazo', () => {
+      expect(dueState(withDue('2026-10-01', 'done'), TODAY)).toBeNull();
+      expect(dueState(task('t', 'todo', 0), TODAY)).toBeNull();
+    });
+
+    it('filtra por hoje, atrasadas e alta prioridade (sem as concluídas)', () => {
+      const high = { ...task('h', 'todo', 0), priority: 'high' as const };
+      expect(matchesFilter(withDue(TODAY), 'today', TODAY)).toBe(true);
+      expect(matchesFilter(withDue('2026-09-30'), 'overdue', TODAY)).toBe(true);
+      expect(matchesFilter(withDue(TODAY), 'overdue', TODAY)).toBe(false);
+      expect(matchesFilter(high, 'high', TODAY)).toBe(true);
+      expect(matchesFilter({ ...high, status: 'done' }, 'high', TODAY)).toBe(false);
+      expect(matchesFilter(task('t', 'done', 0), 'all', TODAY)).toBe(true);
+    });
+
+    it('busca no título e na descrição ignorando maiúsculas e acentos', () => {
+      const item = { ...task('Reunião', 'todo', 0), description: 'Levar o RELATÓRIO' };
+      expect(matchesSearch(item, 'reuniao')).toBe(true);
+      expect(matchesSearch(item, ' relatorio ')).toBe(true);
+      expect(matchesSearch(item, 'orçamento')).toBe(false);
+      expect(matchesSearch(item, '   ')).toBe(true);
     });
   });
 

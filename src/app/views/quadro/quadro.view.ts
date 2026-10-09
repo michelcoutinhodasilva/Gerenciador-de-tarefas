@@ -12,12 +12,13 @@ import {
   Tarefa,
 } from '../../models/entidades/tarefa';
 import { ColunaKanbanView } from '../componentes/coluna-kanban/coluna-kanban.view';
+import { ComemoracaoView } from '../componentes/comemoracao/comemoracao.view';
 import { JanelaTarefaView } from '../componentes/janela-tarefa/janela-tarefa.view';
 
 /** View: tela do quadro Kanban. Toda ação é repassada aos controllers. */
 @Component({
   selector: 'app-quadro-view',
-  imports: [CdkDropListGroup, Button, ColunaKanbanView, JanelaTarefaView],
+  imports: [CdkDropListGroup, Button, ColunaKanbanView, JanelaTarefaView, ComemoracaoView],
   providers: [TarefaController],
   templateUrl: './quadro.view.html',
   host: { '(document:keydown)': 'aoAtalho($event)' },

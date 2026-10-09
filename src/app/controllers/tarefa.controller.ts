@@ -1,5 +1,6 @@
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import {
+  conquistaAoMover,
   DadosTarefa,
   dataHoje,
   FILTROS_TAREFA,
@@ -14,6 +15,7 @@ import {
   StatusTarefa,
   Tarefa,
   tarefasPorStatus,
+  TipoConquista,
 } from '../models/entidades/tarefa';
 import { TarefaModel } from '../models/tarefa.model';
 import { Notificador } from '../nucleo/notificador';
@@ -23,6 +25,13 @@ export interface ColunaQuadro {
   status: StatusTarefa;
   rotulo: string;
   tarefas: Tarefa[];
+}
+
+/** Comemoração exibida na tela. `id` muda a cada conquista para a animação recomeçar. */
+export interface Conquista {
+  id: number;
+  tipo: TipoConquista;
+  titulo: string;
 }
 
 /**
@@ -43,6 +52,10 @@ export class TarefaController {
   readonly hoje = signal(dataHoje());
   /** Hora atual (ms) para os tempos das tarefas; avança a cada minuto. */
   readonly agora = signal(Date.now());
+  readonly conquista = signal<Conquista | null>(null);
+  private totalConquistas = 0;
+  /** Data em que o dia 100% já foi comemorado (no máximo uma vez por dia). */
+  private diaComemorado: string | null = null;
 
   constructor() {
     const relogio = setInterval(() => this.agora.set(Date.now()), 60_000);
@@ -145,20 +158,36 @@ export class TarefaController {
     this.tarefas.set(depois);
     try {
       await this.model.salvarPosicoes(mudancas);
-      return true;
     } catch (erro) {
       this.tarefas.set(antes);
       this.falhar(erro, 'Não foi possível mover a tarefa.');
       return false;
     }
+    this.comemorar(antes, depois, id);
+    return true;
   }
 
-  /** Atalho: manda a tarefa para o fim de "Concluído". */
+  /** Atalho: manda a tarefa para o fim de "Concluído" (a comemoração já avisa). */
   async concluir(id: string): Promise<void> {
     const fim = tarefasPorStatus(this.tarefas(), 'done').length;
-    if (await this.mover(id, 'done', fim)) {
-      this.notificador.sucesso('Tarefa concluída.');
+    await this.mover(id, 'done', fim);
+  }
+
+  dispensarConquista(): void {
+    this.conquista.set(null);
+  }
+
+  private comemorar(antes: readonly Tarefa[], depois: readonly Tarefa[], id: string): void {
+    let tipo = conquistaAoMover(antes, depois, id, this.hoje());
+    if (!tipo) {
+      return;
     }
+    if (tipo === 'dia') {
+      tipo = this.diaComemorado === this.hoje() ? 'tarefa' : 'dia';
+      this.diaComemorado = this.hoje();
+    }
+    const titulo = depois.find((tarefa) => tarefa.id === id)?.titulo ?? '';
+    this.conquista.set({ id: ++this.totalConquistas, tipo, titulo });
   }
 
   private async salvar(

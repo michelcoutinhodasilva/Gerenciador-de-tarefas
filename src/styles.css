@@ -2214,6 +2214,235 @@ app-login-view p-button.auth-submit .p-button {
   }
 }
 
+/* Comemoração: tarefa concluída (selo no rodapé) e dia 100% (tela cheia). */
+.comemoracao {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  z-index: 1200;
+  transform: translateX(-50%);
+  cursor: pointer;
+  animation: comemoracao-sobe 2.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+}
+
+.comemoracao-cartao {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px 12px 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 18px 40px rgb(31 46 36 / 18%);
+}
+
+.comemoracao-medalha {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(145deg, #e7c35a, var(--amber));
+  box-shadow: 0 0 0 4px #f6ead0;
+  animation: medalha-entra 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.comemoracao-medalha svg {
+  width: 26px;
+  height: 26px;
+}
+
+.comemoracao-brilho {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid #e7c35a;
+  animation: brilho-expande 0.9s ease-out 0.15s both;
+}
+
+.confete {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 11px;
+  margin: -5px 0 0 -3px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: confete-voa 1.1s ease-out var(--atraso) forwards;
+}
+
+.confete:nth-child(5n + 1) {
+  background: var(--green);
+}
+.confete:nth-child(5n + 2) {
+  background: #e7c35a;
+}
+.confete:nth-child(5n + 3) {
+  background: var(--amber);
+}
+.confete:nth-child(5n + 4) {
+  background: #7aa58a;
+}
+.confete:nth-child(5n) {
+  background: #d98b5f;
+}
+
+.comemoracao-texto {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.comemoracao-selo {
+  color: var(--amber);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.comemoracao-texto strong {
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.comemoracao-texto > span:last-child {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.comemoracao-titulo {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.comemoracao--dia {
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  transform: none;
+  background: rgb(20 30 24 / 45%);
+  animation: comemoracao-fundo 0.3s ease-out both;
+}
+
+.comemoracao--dia .comemoracao-cartao {
+  flex-direction: column;
+  gap: 18px;
+  width: min(360px, 100%);
+  padding: 36px 28px 28px;
+  text-align: center;
+  animation: medalha-entra 0.5s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+.comemoracao--dia .comemoracao-medalha {
+  width: 88px;
+  height: 88px;
+  box-shadow: 0 0 0 8px #f6ead0;
+}
+
+.comemoracao--dia .comemoracao-medalha svg {
+  width: 44px;
+  height: 44px;
+}
+
+.comemoracao--dia .confete {
+  width: 9px;
+  height: 14px;
+  animation-duration: 1.6s;
+}
+
+.comemoracao--dia .comemoracao-texto strong {
+  font-size: 22px;
+}
+
+.comemoracao-fechar {
+  min-height: 38px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  background: var(--green);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.comemoracao-fechar:hover {
+  background: var(--green-dark);
+}
+
+@keyframes comemoracao-sobe {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 24px) scale(0.9);
+  }
+  12%,
+  85% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 12px) scale(0.97);
+  }
+}
+
+@keyframes comemoracao-fundo {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes medalha-entra {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-12deg);
+  }
+}
+
+@keyframes brilho-expande {
+  from {
+    opacity: 0.9;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+@keyframes confete-voa {
+  0% {
+    opacity: 1;
+    transform: rotate(var(--angulo)) translateY(0) rotate(0);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--angulo)) translateY(calc(var(--distancia) * -1)) rotate(260deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confete,
+  .comemoracao-brilho {
+    display: none;
+  }
+
+  /* Sem a animação de subir/sumir, o selo fica parado até fechar sozinho. */
+  .comemoracao {
+    animation: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

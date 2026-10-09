@@ -176,18 +176,50 @@ describe('TarefaController', () => {
 
     expect(controller.colunas()[2].tarefas.map((item) => item.id)).toEqual(['c', 'a']);
     expect(model.salvarPosicoes).toHaveBeenCalledWith([{ id: 'a', status: 'done', posicao: 1 }]);
-    expect(notificador.sucesso).toHaveBeenCalledWith('Tarefa concluída.');
+    expect(controller.conquista()).toMatchObject({ tipo: 'tarefa', titulo: 'a' });
+    expect(notificador.sucesso).not.toHaveBeenCalled();
   });
 
-  it('não avisa sucesso se não conseguir concluir', async () => {
-    const { controller, model, notificador } = preparar([tarefa('a')]);
+  it('não comemora se não conseguir concluir', async () => {
+    const { controller, model } = preparar([tarefa('a')]);
     await controller.carregar();
     model.salvarPosicoes.mockRejectedValue(new Error('offline'));
 
     await controller.concluir('a');
 
-    expect(notificador.sucesso).not.toHaveBeenCalled();
+    expect(controller.conquista()).toBeNull();
     expect(controller.tarefas()[0].status).toBe('todo');
+  });
+
+  it('comemora ao arrastar para "Concluído", mas não ao mover para outra coluna', async () => {
+    const { controller } = preparar([tarefa('a'), tarefa('b')]);
+    await controller.carregar();
+
+    await controller.mover('a', 'doing', 0);
+    expect(controller.conquista()).toBeNull();
+
+    await controller.mover('a', 'done', 0);
+    const primeira = controller.conquista()!;
+    expect(primeira.tipo).toBe('tarefa');
+
+    await controller.mover('b', 'done', 1);
+    expect(controller.conquista()!.id).not.toBe(primeira.id);
+
+    controller.dispensarConquista();
+    expect(controller.conquista()).toBeNull();
+  });
+
+  it('comemora o dia 100% uma vez só por dia', async () => {
+    const paraHoje = { ...tarefa('a'), prazo: dataHoje() };
+    const { controller } = preparar([paraHoje]);
+    await controller.carregar();
+
+    await controller.mover('a', 'done', 0);
+    expect(controller.conquista()!.tipo).toBe('dia');
+
+    await controller.mover('a', 'todo', 0);
+    await controller.mover('a', 'done', 0);
+    expect(controller.conquista()!.tipo).toBe('tarefa');
   });
 
   describe('busca, filtros e resumo', () => {

@@ -1,7 +1,9 @@
 import { ErroValidacao } from './erro-validacao';
 import {
+  conquistaAoMover,
   DadosTarefa,
   dataHoje,
+  diaConcluido,
   entradaNaColuna,
   LIMITES_TAREFA,
   moverTarefa,
@@ -107,6 +109,30 @@ describe('Tarefa (entidade)', () => {
       expect(passaNoFiltro(alta, 'alta', HOJE)).toBe(true);
       expect(passaNoFiltro({ ...alta, status: 'done' }, 'alta', HOJE)).toBe(false);
       expect(passaNoFiltro(tarefa('t', 'done', 0), 'todas', HOJE)).toBe(true);
+    });
+
+    it('dia 100% só quando há tarefa para hoje e todas estão concluídas', () => {
+      expect(diaConcluido([comPrazo(HOJE, 'done'), comPrazo('2026-10-03')], HOJE)).toBe(true);
+      expect(diaConcluido([comPrazo(HOJE, 'done'), comPrazo(HOJE, 'doing')], HOJE)).toBe(false);
+      expect(diaConcluido([tarefa('t', 'done', 0)], HOJE)).toBe(false);
+      expect(diaConcluido([], HOJE)).toBe(false);
+    });
+
+    it('conquista ao mover: tarefa, dia ou nada', () => {
+      const pendente = { ...comPrazo(HOJE, 'doing'), id: 'a' };
+      const outra = { ...comPrazo(HOJE, 'todo'), id: 'b' };
+      const concluir = (lista: Tarefa[], id: string) => moverTarefa(lista, id, 'done', 0);
+
+      expect(conquistaAoMover([pendente, outra], concluir([pendente, outra], 'a'), 'a', HOJE)).toBe(
+        'tarefa',
+      );
+      expect(conquistaAoMover([pendente], concluir([pendente], 'a'), 'a', HOJE)).toBe('dia');
+
+      const pronta = { ...pendente, status: 'done' as const };
+      expect(conquistaAoMover([pronta], concluir([pronta], 'a'), 'a', HOJE)).toBeNull();
+      expect(
+        conquistaAoMover([pendente], moverTarefa([pendente], 'a', 'todo', 0), 'a', HOJE),
+      ).toBeNull();
     });
 
     it('busca no título e na descrição ignorando maiúsculas e acentos', () => {

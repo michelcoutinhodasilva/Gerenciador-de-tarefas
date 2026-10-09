@@ -132,6 +132,30 @@ export function passaNoFiltro(tarefa: Tarefa, filtro: FiltroTarefa, hoje: string
   }
 }
 
+/** Dia 100%: existe tarefa com prazo para hoje e todas elas estão concluídas. */
+export function diaConcluido(tarefas: readonly Tarefa[], hoje: string): boolean {
+  const doDia = tarefas.filter((tarefa) => tarefa.prazo === hoje);
+  return doDia.length > 0 && doDia.every((tarefa) => tarefa.status === 'done');
+}
+
+/** "tarefa": uma tarefa foi concluída. "dia": essa conclusão fechou o dia em 100%. */
+export type TipoConquista = 'tarefa' | 'dia';
+
+/** Que conquista o movimento gerou; `null` se a tarefa não entrou agora em "Concluído". */
+export function conquistaAoMover(
+  antes: readonly Tarefa[],
+  depois: readonly Tarefa[],
+  tarefaId: string,
+  hoje: string,
+): TipoConquista | null {
+  const estavaConcluida = antes.find((tarefa) => tarefa.id === tarefaId)?.status === 'done';
+  const ficouConcluida = depois.find((tarefa) => tarefa.id === tarefaId)?.status === 'done';
+  if (estavaConcluida || !ficouConcluida) {
+    return null;
+  }
+  return !diaConcluido(antes, hoje) && diaConcluido(depois, hoje) ? 'dia' : 'tarefa';
+}
+
 /** Busca no título e na descrição, sem diferenciar maiúsculas nem acentos. */
 export function passaNaBusca(tarefa: Tarefa, busca: string): boolean {
   const termo = normalizar(busca.trim());

@@ -1,0 +1,49 @@
+@for (conquista of atual(); track conquista.id) {
+  <div
+    class="comemoracao"
+    [class.comemoracao--dia]="conquista.tipo === 'dia'"
+    [attr.data-testid]="'comemoracao-' + conquista.tipo"
+    role="status"
+    aria-live="polite"
+    (click)="fechar.emit()"
+  >
+    <div class="comemoracao-cartao">
+      <div class="comemoracao-medalha" aria-hidden="true">
+        <span class="comemoracao-brilho"></span>
+        @for (confete of conquista.confetes; track $index) {
+          <span
+            class="confete"
+            [style.--angulo]="confete.angulo"
+            [style.--distancia]="confete.distancia"
+            [style.--atraso]="confete.atraso"
+          ></span>
+        }
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          @if (conquista.tipo === 'dia') {
+            <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z" />
+            <path d="M7 6H4.5a2.5 2.5 0 0 0 2.6 3.9M17 6h2.5a2.5 2.5 0 0 1-2.6 3.9" />
+          } @else {
+            <path d="m6.5 12.5 3.5 3.5 7.5-8" />
+          }
+        </svg>
+      </div>
+
+      <div class="comemoracao-texto">
+        <span class="comemoracao-selo">Conquista desbloqueada</span>
+        @if (conquista.tipo === 'dia') {
+          <strong>Dia 100% concluído!</strong>
+          <span>Você concluiu todas as tarefas de hoje.</span>
+        } @else {
+          <strong>Tarefa concluída</strong>
+          <span class="comemoracao-titulo">{{ conquista.titulo }}</span>
+        }
+      </div>
+
+      @if (conquista.tipo === 'dia') {
+        <button type="button" class="comemoracao-fechar" data-testid="fechar-comemoracao">
+          Continuar
+        </button>
+      }
+    </div>
+  </div>
+}

@@ -319,3 +319,5 @@
   [salvando]="tarefas.salvando()"
   (salvar)="salvar($event)"
 />
+
+<app-comemoracao [conquista]="tarefas.conquista()" (fechar)="tarefas.dispensarConquista()" />

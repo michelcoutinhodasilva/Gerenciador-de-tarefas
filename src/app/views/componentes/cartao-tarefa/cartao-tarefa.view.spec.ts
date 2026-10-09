@@ -31,7 +31,7 @@ describe('CartaoTarefaView', () => {
     expect(elemento.textContent).toContain('Revisar proposta');
     expect(elemento.textContent).toContain('Enviar até sexta');
     expect(elemento.textContent).toContain('02/10/2026');
-    expect(texto('prioridade')).toBe('Alta');
+    expect(texto('prioridade')).toBe('Urgente');
     expect(texto('prazo')).toBeUndefined();
   });
 

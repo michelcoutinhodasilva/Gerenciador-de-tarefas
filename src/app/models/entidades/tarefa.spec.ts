@@ -96,7 +96,7 @@ describe('Tarefa (entidade)', () => {
       expect(situacaoPrazo(tarefa('t', 'todo', 0), HOJE)).toBeNull();
     });
 
-    it('filtra por hoje, atrasadas e alta prioridade (sem as concluídas)', () => {
+    it('filtra por hoje, atrasadas e urgente (sem as concluídas)', () => {
       const alta = { ...tarefa('h', 'todo', 0), prioridade: 'high' as const };
       expect(passaNoFiltro(comPrazo(HOJE), 'hoje', HOJE)).toBe(true);
       expect(passaNoFiltro(comPrazo('2026-09-30'), 'atrasadas', HOJE)).toBe(true);

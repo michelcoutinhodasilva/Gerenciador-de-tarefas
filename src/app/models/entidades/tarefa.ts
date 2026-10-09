@@ -20,7 +20,7 @@ export const PRIORIDADES_TAREFA: readonly PrioridadeTarefa[] = ['low', 'medium',
 export const ROTULOS_PRIORIDADE: Readonly<Record<PrioridadeTarefa, string>> = {
   low: 'Baixa',
   medium: 'Média',
-  high: 'Alta',
+  high: 'Urgente',
 };
 
 /** Mantenha igual às regras de supabase/schema.sql. */
@@ -106,7 +106,7 @@ export const ROTULOS_FILTRO: Readonly<Record<FiltroTarefa, string>> = {
   todas: 'Todas',
   hoje: 'Para hoje',
   atrasadas: 'Atrasadas',
-  alta: 'Alta prioridade',
+  alta: 'Urgentes',
 };
 
 /** Diz se a tarefa entra no filtro rápido escolhido. */

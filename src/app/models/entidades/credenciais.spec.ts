@@ -1,4 +1,4 @@
-import { SENHA_TAMANHO_MINIMO, validarCredenciais } from './credenciais';
+import { validarCredenciais } from './credenciais';
 import { ErroValidacao } from './erro-validacao';
 
 describe('Credenciais (entidade)', () => {
@@ -13,8 +13,13 @@ describe('Credenciais (entidade)', () => {
     expect(() => validarCredenciais({ email: 'ana', senha: '123456' })).toThrow(ErroValidacao);
   });
 
-  it('recusa senha curta', () => {
-    const senha = 'a'.repeat(SENHA_TAMANHO_MINIMO - 1);
-    expect(() => validarCredenciais({ email: 'ana@empresa.com', senha })).toThrow(/senha/);
+  it('aceita senha de qualquer tamanho', () => {
+    expect(validarCredenciais({ email: 'ana@empresa.com', senha: 'a' }).senha).toBe('a');
+  });
+
+  it('recusa senha vazia', () => {
+    expect(() => validarCredenciais({ email: 'ana@empresa.com', senha: '' })).toThrow(
+      'Informe uma senha.',
+    );
   });
 });

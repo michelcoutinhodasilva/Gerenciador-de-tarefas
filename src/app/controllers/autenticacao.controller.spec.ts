@@ -14,6 +14,8 @@ function preparar() {
     entrar: vi.fn().mockResolvedValue(usuario),
     cadastrar: vi.fn().mockResolvedValue(usuario),
     sair: vi.fn().mockResolvedValue(undefined),
+    enviarRecuperacao: vi.fn().mockResolvedValue(undefined),
+    redefinirSenha: vi.fn().mockResolvedValue(usuario),
   };
   const router = { navigateByUrl: vi.fn().mockResolvedValue(true) };
   const notificador = { sucesso: vi.fn(), erro: vi.fn() };
@@ -95,5 +97,53 @@ describe('AutenticacaoController', () => {
 
     expect(controller.usuario()).toBeNull();
     expect(router.navigateByUrl).toHaveBeenLastCalledWith('/login');
+  });
+
+  it('avisa que o link foi enviado, sem revelar se o e-mail existe', async () => {
+    const { controller, model } = preparar();
+
+    await controller.enviarRecuperacao('ana@empresa.com');
+
+    expect(model.enviarRecuperacao).toHaveBeenCalledWith('ana@empresa.com');
+    expect(controller.recuperacaoEnviada()).toBe(true);
+  });
+
+  it('mostra erro se o envio do link falhar', async () => {
+    const { controller, model } = preparar();
+    model.enviarRecuperacao.mockRejectedValue(new ErroValidacao('Informe um e-mail válido.'));
+
+    await controller.enviarRecuperacao('ana');
+
+    expect(controller.erro()).toBe('Informe um e-mail válido.');
+    expect(controller.recuperacaoEnviada()).toBe(false);
+  });
+
+  it('recusa a nova senha quando a confirmação não confere', async () => {
+    const { controller, model } = preparar();
+
+    await controller.redefinirSenha('nova123', 'outra123');
+
+    expect(model.redefinirSenha).not.toHaveBeenCalled();
+    expect(controller.erro()).toBe('As senhas não conferem.');
+  });
+
+  it('troca a senha e abre o quadro', async () => {
+    const { controller, model, router, notificador } = preparar();
+
+    await controller.redefinirSenha('nova123', 'nova123');
+
+    expect(model.redefinirSenha).toHaveBeenCalledWith('nova123');
+    expect(notificador.sucesso).toHaveBeenCalledWith('Senha alterada.');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/quadro');
+  });
+
+  it('limpa o aviso ao trocar de tela', async () => {
+    const { controller } = preparar();
+    await controller.enviarRecuperacao('ana@empresa.com');
+
+    controller.limparMensagens();
+
+    expect(controller.recuperacaoEnviada()).toBe(false);
+    expect(controller.erro()).toBeNull();
   });
 });

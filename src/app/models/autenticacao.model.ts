@@ -1,8 +1,17 @@
 import { inject, Injectable } from '@angular/core';
 import { User } from '@supabase/supabase-js';
 import { SUPABASE_CLIENTE } from '../nucleo/supabase.cliente';
-import { Credenciais, UsuarioApp, validarCredenciais } from './entidades/credenciais';
+import {
+  Credenciais,
+  UsuarioApp,
+  validarCredenciais,
+  validarEmail,
+  validarSenha,
+} from './entidades/credenciais';
 import { ErroValidacao } from './entidades/erro-validacao';
+
+/** Rota da tela que recebe o link do e-mail de recuperação. */
+const CAMINHO_REDEFINIR_SENHA = '/redefinir-senha';
 
 /** Erros do Supabase Auth que o usuário consegue resolver sozinho. */
 const ERROS_AMIGAVEIS: Readonly<Record<string, string>> = {
@@ -47,6 +56,25 @@ export class AutenticacaoModel {
     );
     lancarSeFalhou(error);
     return data.session ? paraUsuarioApp(data.user) : null;
+  }
+
+  /** Envia o e-mail com o link para criar uma senha nova. */
+  async enviarRecuperacao(email: string): Promise<void> {
+    const { error } = await this.banco.auth.resetPasswordForEmail(validarEmail(email), {
+      redirectTo: window.location.origin + CAMINHO_REDEFINIR_SENHA,
+    });
+    lancarSeFalhou(error);
+  }
+
+  /** Troca a senha de quem abriu o link de recuperação (sessão temporária do Supabase). */
+  async redefinirSenha(senha: string): Promise<UsuarioApp> {
+    const { data, error } = await this.banco.auth.updateUser({ password: validarSenha(senha) });
+    lancarSeFalhou(error);
+    const usuario = paraUsuarioApp(data.user);
+    if (!usuario) {
+      throw new Error('Troca de senha sem usuário retornado.');
+    }
+    return usuario;
   }
 
   async sair(): Promise<void> {

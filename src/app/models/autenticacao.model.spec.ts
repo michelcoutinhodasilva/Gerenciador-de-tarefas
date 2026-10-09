@@ -14,6 +14,8 @@ function preparar() {
     signInWithPassword: vi.fn(),
     signUp: vi.fn(),
     signOut: vi.fn(),
+    resetPasswordForEmail: vi.fn(),
+    updateUser: vi.fn(),
   };
   TestBed.configureTestingModule({
     providers: [{ provide: SUPABASE_CLIENTE, useValue: { auth } }],
@@ -78,5 +80,42 @@ describe('AutenticacaoModel', () => {
     auth.signUp.mockResolvedValue({ data: { user: usuarioSupabase, session: null }, error: null });
 
     expect(await model.cadastrar(credenciais)).toBeNull();
+  });
+
+  it('envia o link de recuperação com o e-mail normalizado e o retorno para a nova senha', async () => {
+    const { model, auth } = preparar();
+    auth.resetPasswordForEmail.mockResolvedValue({ data: {}, error: null });
+
+    await model.enviarRecuperacao(' ANA@empresa.com');
+
+    expect(auth.resetPasswordForEmail).toHaveBeenCalledWith(
+      'ana@empresa.com',
+      expect.objectContaining({ redirectTo: expect.stringMatching(/\/redefinir-senha$/) }),
+    );
+  });
+
+  it('troca a senha de quem abriu o link', async () => {
+    const { model, auth } = preparar();
+    auth.updateUser.mockResolvedValue({ data: { user: usuarioSupabase }, error: null });
+
+    expect(await model.redefinirSenha('nova123')).toEqual({ id: 'u1', email: 'ana@empresa.com' });
+    expect(auth.updateUser).toHaveBeenCalledWith({ password: 'nova123' });
+  });
+
+  it('não chama o Supabase com senha nova vazia', async () => {
+    const { model, auth } = preparar();
+
+    await expect(model.redefinirSenha('')).rejects.toThrow(ErroValidacao);
+    expect(auth.updateUser).not.toHaveBeenCalled();
+  });
+
+  it('avisa quando o link expirou ou não é válido', async () => {
+    const { model, auth } = preparar();
+    auth.updateUser.mockResolvedValue({
+      data: { user: null },
+      error: { message: 'Auth session missing!' },
+    });
+
+    await expect(model.redefinirSenha('nova123')).rejects.toThrow('Auth session missing!');
   });
 });

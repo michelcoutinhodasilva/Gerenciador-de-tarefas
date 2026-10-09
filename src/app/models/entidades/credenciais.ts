@@ -1,7 +1,5 @@
 import { ErroValidacao } from './erro-validacao';
 
-export const SENHA_TAMANHO_MINIMO = 6;
-
 const PADRAO_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export interface Credenciais {
@@ -14,14 +12,21 @@ export interface UsuarioApp {
   email: string;
 }
 
-export function validarCredenciais(credenciais: Credenciais): Credenciais {
-  const email = credenciais.email.trim().toLowerCase();
-
-  if (!PADRAO_EMAIL.test(email)) {
+export function validarEmail(email: string): string {
+  const normalizado = email.trim().toLowerCase();
+  if (!PADRAO_EMAIL.test(normalizado)) {
     throw new ErroValidacao('Informe um e-mail válido.');
   }
-  if (credenciais.senha.length < SENHA_TAMANHO_MINIMO) {
-    throw new ErroValidacao(`A senha deve ter pelo menos ${SENHA_TAMANHO_MINIMO} caracteres.`);
+  return normalizado;
+}
+
+export function validarSenha(senha: string): string {
+  if (!senha) {
+    throw new ErroValidacao('Informe uma senha.');
   }
-  return { email, senha: credenciais.senha };
+  return senha;
+}
+
+export function validarCredenciais(credenciais: Credenciais): Credenciais {
+  return { email: validarEmail(credenciais.email), senha: validarSenha(credenciais.senha) };
 }

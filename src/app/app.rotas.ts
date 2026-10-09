@@ -9,6 +9,12 @@ export const rotas: Routes = [
     loadComponent: () => import('./views/login/login.view').then((m) => m.LoginView),
   },
   {
+    path: 'redefinir-senha',
+    title: 'Nova senha · Gerenciador de Tarefas',
+    data: { modo: 'redefinir' },
+    loadComponent: () => import('./views/login/login.view').then((m) => m.LoginView),
+  },
+  {
     path: 'quadro',
     title: 'Quadro · Gerenciador de Tarefas',
     canActivate: [guardaLogado],

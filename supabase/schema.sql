@@ -43,3 +43,50 @@ drop policy if exists "tasks_delete_own" on public.tasks;
 create policy "tasks_delete_own" on public.tasks
   for delete to authenticated
   using ((select auth.uid()) = user_id);
+
+-- Histórico de colunas: cada linha marca quando a tarefa entrou em uma coluna (status).
+create table if not exists public.task_status_history (
+  id          bigint generated always as identity primary key,
+  task_id     uuid not null references public.tasks (id) on delete cascade,
+  user_id     uuid not null references auth.users (id) on delete cascade,
+  status      text not null check (status in ('todo', 'doing', 'done')),
+  changed_at  timestamptz not null default now()
+);
+
+create index if not exists task_status_history_task_idx
+  on public.task_status_history (task_id, changed_at);
+
+-- Segurança: cada usuário só lê o próprio histórico. Ninguém grava direto: só o gatilho abaixo.
+alter table public.task_status_history enable row level security;
+
+drop policy if exists "task_status_history_select_own" on public.task_status_history;
+create policy "task_status_history_select_own" on public.task_status_history
+  for select to authenticated
+  using ((select auth.uid()) = user_id);
+
+-- Gatilho: registra a coluna ao criar a tarefa e a cada troca de coluna.
+create or replace function public.registrar_status_tarefa()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if tg_op = 'INSERT' or new.status is distinct from old.status then
+    insert into public.task_status_history (task_id, user_id, status)
+    values (new.id, new.user_id, new.status);
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists tasks_registrar_status on public.tasks;
+create trigger tasks_registrar_status
+  after insert or update of status on public.tasks
+  for each row execute function public.registrar_status_tarefa();
+
+-- Tarefas antigas (sem histórico): contam como se estivessem na coluna atual desde a criação.
+insert into public.task_status_history (task_id, user_id, status, changed_at)
+select t.id, t.user_id, t.status, t.created_at
+from public.tasks t
+where not exists (select 1 from public.task_status_history h where h.task_id = t.id);

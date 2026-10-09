@@ -295,6 +295,7 @@
                   [rotulo]="coluna.rotulo"
                   [tarefas]="coluna.tarefas"
                   [hoje]="tarefas.hoje()"
+                  [agora]="tarefas.agora()"
                   [filtrando]="tarefas.filtrando()"
                   (adicionar)="abrirCriacao(coluna.status)"
                   (editar)="abrirEdicao($event)"
@@ -314,6 +315,7 @@
 <app-janela-tarefa
   [(visivel)]="janelaAberta"
   [tarefa]="editando()"
+  [agora]="tarefas.agora()"
   [salvando]="tarefas.salvando()"
   (salvar)="salvar($event)"
 />

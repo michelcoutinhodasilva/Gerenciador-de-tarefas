@@ -2,6 +2,7 @@ import { ErroValidacao } from './erro-validacao';
 import {
   DadosTarefa,
   dataHoje,
+  entradaNaColuna,
   LIMITES_TAREFA,
   moverTarefa,
   passaNaBusca,
@@ -13,6 +14,7 @@ import {
   StatusTarefa,
   Tarefa,
   tarefasPorStatus,
+  tempoPorStatus,
   validarDadosTarefa,
 } from './tarefa';
 
@@ -32,6 +34,7 @@ function tarefa(id: string, status: StatusTarefa, posicao: number): Tarefa {
     prazo: null,
     posicao,
     criadaEm: '2026-10-02T00:00:00Z',
+    historico: [],
   };
 }
 
@@ -175,6 +178,50 @@ describe('Tarefa (entidade)', () => {
     it('retorna vazio quando nada muda', () => {
       const antes = [tarefa('a', 'todo', 0)];
       expect(posicoesAlteradas(antes, moverTarefa(antes, 'a', 'todo', 0))).toEqual([]);
+    });
+  });
+
+  describe('tempo em cada coluna', () => {
+    const hora = (iso: string) => Date.parse(iso);
+
+    it('registra a entrada na nova coluna ao mover (a partir da criação, se não houver histórico)', () => {
+      const [movida] = moverTarefa(
+        [tarefa('a', 'todo', 0)],
+        'a',
+        'doing',
+        0,
+        '2026-10-02T05:00:00Z',
+      );
+      expect(movida.historico).toEqual([
+        { status: 'todo', desde: '2026-10-02T00:00:00Z' },
+        { status: 'doing', desde: '2026-10-02T05:00:00Z' },
+      ]);
+    });
+
+    it('não registra nada ao reordenar dentro da mesma coluna', () => {
+      const tarefas = [tarefa('a', 'todo', 0), tarefa('b', 'todo', 1)];
+      const resultado = moverTarefa(tarefas, 'b', 'todo', 0, '2026-10-02T05:00:00Z');
+      expect(resultado.every((item) => item.historico.length === 0)).toBe(true);
+    });
+
+    it('soma o tempo de cada coluna até agora', () => {
+      const comHistorico: Tarefa = {
+        ...tarefa('a', 'todo', 0),
+        historico: [
+          { status: 'todo', desde: '2026-10-02T00:00:00Z' },
+          { status: 'doing', desde: '2026-10-02T02:00:00Z' },
+          { status: 'todo', desde: '2026-10-02T05:00:00Z' },
+        ],
+      };
+      const tempos = tempoPorStatus(comHistorico, hora('2026-10-02T06:00:00Z'));
+      expect(tempos).toEqual({ todo: 3 * 3_600_000, doing: 3 * 3_600_000, done: 0 });
+      expect(entradaNaColuna(comHistorico)).toBe('2026-10-02T05:00:00Z');
+    });
+
+    it('sem histórico, conta a coluna atual desde a criação', () => {
+      const semHistorico = tarefa('a', 'doing', 0);
+      expect(tempoPorStatus(semHistorico, hora('2026-10-02T01:00:00Z')).doing).toBe(3_600_000);
+      expect(entradaNaColuna(semHistorico)).toBe('2026-10-02T00:00:00Z');
     });
   });
 });

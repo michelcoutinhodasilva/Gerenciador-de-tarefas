@@ -12,6 +12,7 @@ const tarefas: Tarefa[] = [
     prazo: null,
     posicao: 0,
     criadaEm: '2026-10-02',
+    historico: [],
   },
   {
     id: '2',
@@ -22,6 +23,7 @@ const tarefas: Tarefa[] = [
     prazo: null,
     posicao: 1,
     criadaEm: '2026-10-02',
+    historico: [],
   },
 ];
 
@@ -31,6 +33,7 @@ async function preparar(itens: Tarefa[], filtrando = false) {
   fixture.componentRef.setInput('rotulo', 'Em andamento');
   fixture.componentRef.setInput('tarefas', itens);
   fixture.componentRef.setInput('hoje', '2026-10-02');
+  fixture.componentRef.setInput('agora', Date.parse('2026-10-02T15:30:00Z'));
   fixture.componentRef.setInput('filtrando', filtrando);
   await fixture.whenStable();
   return { fixture, elemento: fixture.nativeElement as HTMLElement };

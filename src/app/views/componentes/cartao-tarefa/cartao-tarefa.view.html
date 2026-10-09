@@ -90,9 +90,14 @@
         {{ prefixoPrazo() }}{{ tarefa().prazo + 'T00:00:00' | date: 'dd/MM' }}
       </time>
     }
+  </div>
 
-    <time class="task-created" [attr.datetime]="tarefa().criadaEm" title="Criada em">
-      {{ tarefa().criadaEm | date: 'dd/MM/yyyy' }}
+  <div class="task-card-timing">
+    <time data-testid="criada" [attr.datetime]="tarefa().criadaEm" title="Criada em">
+      {{ tarefa().criadaEm | date: 'dd/MM/yyyy HH:mm' }} · há {{ idade() }}
     </time>
+    <span data-testid="na-coluna" title="Tempo nesta coluna">
+      Nesta coluna há {{ tempoNaColuna() }}
+    </span>
   </div>
 </article>

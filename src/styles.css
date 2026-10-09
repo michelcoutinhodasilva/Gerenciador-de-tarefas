@@ -1180,11 +1180,67 @@ app-cartao-tarefa {
   color: #727e75;
 }
 
-.task-created {
-  margin-left: auto;
+.task-card-timing {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #eef1ee;
   color: #9aa39c;
   font-size: 9px;
+  line-height: 1.3;
+}
+
+.task-card-timing > * {
   white-space: nowrap;
+}
+
+.task-card-timing > span {
+  color: #727e75;
+  font-weight: 600;
+}
+
+/* Janela da tarefa: tempo em cada coluna */
+.task-history {
+  padding: 12px 14px;
+  border: 1px solid #e2e8e2;
+  border-radius: 10px;
+  background: #f7f9f7;
+}
+
+.task-history-created {
+  margin: 0 0 8px;
+  color: #748078;
+  font-size: 12px;
+}
+
+.task-history ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.task-history li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #4d5a51;
+  font-size: 13px;
+}
+
+.task-history li strong {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.task-history li.task-history-current {
+  color: #2d493a;
+  font-weight: 600;
 }
 
 .board-skeleton .skeleton-column {

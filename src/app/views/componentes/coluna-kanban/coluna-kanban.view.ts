@@ -21,6 +21,8 @@ export class ColunaKanbanView {
   readonly rotulo = input.required<string>();
   readonly tarefas = input.required<Tarefa[]>();
   readonly hoje = input.required<string>();
+  /** Hora atual (ms) repassada aos cartões para os tempos. */
+  readonly agora = input.required<number>();
   /** Com busca/filtro a coluna está incompleta, então arrastar salvaria a posição errada. */
   readonly filtrando = input(false);
 

@@ -15,6 +15,7 @@ function tarefa(id: string, status: StatusTarefa = 'todo', posicao = 0): Tarefa 
     prazo: null,
     posicao,
     criadaEm: '2026-10-02T00:00:00Z',
+    historico: [],
   };
 }
 
@@ -150,6 +151,18 @@ describe('TarefaController', () => {
     await controller.mover('a', 'doing', 0);
 
     expect(controller.tarefas()[0].status).toBe('todo');
+    expect(controller.tarefas()[0].historico).toEqual([]);
+  });
+
+  it('registra a entrada na nova coluna na hora e atualiza o relógio', async () => {
+    const { controller } = preparar([tarefa('a', 'todo', 0)]);
+    await controller.carregar();
+
+    await controller.mover('a', 'doing', 0);
+
+    const [movida] = controller.tarefas();
+    expect(movida.historico.map((passagem) => passagem.status)).toEqual(['todo', 'doing']);
+    expect(Date.parse(movida.historico[1].desde)).toBe(controller.agora());
   });
 
   it('conclui a tarefa mandando para o fim de "Concluído"', async () => {

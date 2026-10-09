@@ -79,6 +79,23 @@
       }
     </div>
 
+    @if (tarefa(); as aberta) {
+      <section class="task-history" aria-label="Tempo em cada coluna" data-testid="historico">
+        <p class="task-history-created">
+          Criada em {{ aberta.criadaEm | date: 'dd/MM/yyyy' }} às
+          {{ aberta.criadaEm | date: 'HH:mm' }}
+        </p>
+        <ul>
+          @for (item of temposPorColuna(); track item.status) {
+            <li [class.task-history-current]="item.atual">
+              <span>{{ item.rotulo }}{{ item.atual ? ' (agora)' : '' }}</span>
+              <strong>{{ item.tempo }}</strong>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
     <div class="task-dialog-actions">
       <p-button
         class="dialog-cancel-action"

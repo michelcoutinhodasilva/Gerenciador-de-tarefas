@@ -36,6 +36,15 @@ export interface Tarefa {
   prazo: string | null;
   posicao: number;
   criadaEm: string;
+  /** Entradas em cada coluna, da mais antiga para a mais nova. */
+  historico: PassagemColuna[];
+}
+
+/** Momento em que a tarefa entrou em uma coluna. */
+export interface PassagemColuna {
+  status: StatusTarefa;
+  /** Data e hora (ISO) da entrada na coluna. */
+  desde: string;
 }
 
 export interface DadosTarefa {
@@ -155,6 +164,7 @@ export function moverTarefa(
   tarefaId: string,
   paraStatus: StatusTarefa,
   paraIndice: number,
+  quando = new Date().toISOString(),
 ): Tarefa[] {
   const tarefa = tarefas.find((item) => item.id === tarefaId);
   if (!tarefa) {
@@ -163,7 +173,7 @@ export function moverTarefa(
 
   const destino = tarefasPorStatus(tarefas, paraStatus).filter((item) => item.id !== tarefaId);
   const indice = Math.max(0, Math.min(paraIndice, destino.length));
-  destino.splice(indice, 0, { ...tarefa, status: paraStatus });
+  destino.splice(indice, 0, trocarColuna(tarefa, paraStatus, quando));
 
   const renumeradas = new Map<string, Tarefa>();
   destino.forEach((item, posicao) => renumeradas.set(item.id, { ...item, posicao }));
@@ -189,4 +199,36 @@ export function posicoesAlteradas(
       return !antiga || antiga.status !== tarefa.status || antiga.posicao !== tarefa.posicao;
     })
     .map(({ id, status, posicao }) => ({ id, status, posicao }));
+}
+
+/** Histórico da tarefa; sem registros, conta a coluna atual desde a criação. */
+function historicoDe(tarefa: Tarefa): PassagemColuna[] {
+  return tarefa.historico.length
+    ? tarefa.historico
+    : [{ status: tarefa.status, desde: tarefa.criadaEm }];
+}
+
+/** Troca a coluna e registra a entrada nela (só quando a coluna muda). */
+function trocarColuna(tarefa: Tarefa, status: StatusTarefa, quando: string): Tarefa {
+  if (tarefa.status === status) {
+    return tarefa;
+  }
+  return { ...tarefa, status, historico: [...historicoDe(tarefa), { status, desde: quando }] };
+}
+
+/** Quando a tarefa entrou na coluna em que está agora (ISO). */
+export function entradaNaColuna(tarefa: Tarefa): string {
+  return historicoDe(tarefa).at(-1)!.desde;
+}
+
+/** Milissegundos que a tarefa passou em cada coluna, até `agora`. */
+export function tempoPorStatus(tarefa: Tarefa, agora: number): Record<StatusTarefa, number> {
+  const tempos: Record<StatusTarefa, number> = { todo: 0, doing: 0, done: 0 };
+  const passagens = historicoDe(tarefa);
+  passagens.forEach((passagem, indice) => {
+    const proxima = passagens[indice + 1];
+    const fim = proxima ? Date.parse(proxima.desde) : agora;
+    tempos[passagem.status] += Math.max(0, fim - Date.parse(passagem.desde));
+  });
+  return tempos;
 }

@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import {
   DadosTarefa,
   dataHoje,
@@ -41,6 +41,13 @@ export class TarefaController {
   readonly filtro = signal<FiltroTarefa>('todas');
   /** Data de referência para prazos; renovada a cada carregamento. */
   readonly hoje = signal(dataHoje());
+  /** Hora atual (ms) para os tempos das tarefas; avança a cada minuto. */
+  readonly agora = signal(Date.now());
+
+  constructor() {
+    const relogio = setInterval(() => this.agora.set(Date.now()), 60_000);
+    inject(DestroyRef).onDestroy(() => clearInterval(relogio));
+  }
 
   /** Com busca ou filtro ativo, a coluna mostra só parte das tarefas. */
   readonly filtrando = computed(() => this.busca().trim() !== '' || this.filtro() !== 'todas');
@@ -84,6 +91,7 @@ export class TarefaController {
 
   async carregar(): Promise<void> {
     this.hoje.set(dataHoje());
+    this.agora.set(Date.now());
     this.carregando.set(true);
     try {
       this.tarefas.set(await this.model.listar());
@@ -126,12 +134,14 @@ export class TarefaController {
   /** Move na tela na hora e desfaz se o banco recusar. Devolve `true` se ficou salvo. */
   async mover(id: string, paraStatus: StatusTarefa, paraIndice: number): Promise<boolean> {
     const antes = this.tarefas();
-    const depois = moverTarefa(antes, id, paraStatus, paraIndice);
+    const agora = Date.now();
+    const depois = moverTarefa(antes, id, paraStatus, paraIndice, new Date(agora).toISOString());
     const mudancas = posicoesAlteradas(antes, depois);
     if (mudancas.length === 0) {
       return true;
     }
 
+    this.agora.set(agora);
     this.tarefas.set(depois);
     try {
       await this.model.salvarPosicoes(mudancas);

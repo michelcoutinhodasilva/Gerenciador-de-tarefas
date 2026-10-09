@@ -60,7 +60,30 @@ describe('TarefaModel', () => {
         prazo: '2026-10-05',
         posicao: 0,
         criadaEm: '2026-10-02T00:00:00Z',
+        historico: [],
       },
+    ]);
+  });
+
+  it('busca o histórico de colunas junto e ordena do mais antigo ao mais novo', async () => {
+    const comHistorico = {
+      ...linha,
+      status: 'doing',
+      task_status_history: [
+        { status: 'doing', changed_at: '2026-10-03T10:00:00Z' },
+        { status: 'todo', changed_at: '2026-10-02T00:00:00Z' },
+      ],
+    };
+    const { model, consulta } = preparar({ data: [comHistorico], error: null });
+
+    const [tarefa] = await model.listar();
+
+    expect(consulta['select']).toHaveBeenCalledWith(
+      expect.stringContaining('task_status_history(status, changed_at)'),
+    );
+    expect(tarefa.historico).toEqual([
+      { status: 'todo', desde: '2026-10-02T00:00:00Z' },
+      { status: 'doing', desde: '2026-10-03T10:00:00Z' },
     ]);
   });
 

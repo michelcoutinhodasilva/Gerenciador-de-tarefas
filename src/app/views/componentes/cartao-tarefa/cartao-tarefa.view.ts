@@ -1,12 +1,14 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
 import {
+  entradaNaColuna,
   PrioridadeTarefa,
   ROTULOS_PRIORIDADE,
   SituacaoPrazo,
   situacaoPrazo,
   Tarefa,
 } from '../../../models/entidades/tarefa';
+import { formatarDuracao } from '../../../nucleo/duracao';
 
 const ESTILOS_PRIORIDADE: Readonly<Record<PrioridadeTarefa, string>> = {
   low: 'task-priority--low',
@@ -37,6 +39,8 @@ export class CartaoTarefaView {
   readonly tarefa = input.required<Tarefa>();
   /** Data de hoje (AAAA-MM-DD) usada para avisar prazos. */
   readonly hoje = input.required<string>();
+  /** Hora atual (ms) usada para os tempos da tarefa. */
+  readonly agora = input.required<number>();
   readonly editar = output<void>();
   readonly excluir = output<void>();
   readonly concluir = output<void>();
@@ -54,4 +58,11 @@ export class CartaoTarefaView {
     () => PREFIXO_PRAZO[this.situacao() ?? 'futura'] ?? '',
   );
   protected readonly atrasada = computed(() => this.situacao() === 'atrasada');
+
+  protected readonly idade = computed(() =>
+    formatarDuracao(this.agora() - Date.parse(this.tarefa().criadaEm)),
+  );
+  protected readonly tempoNaColuna = computed(() =>
+    formatarDuracao(this.agora() - Date.parse(entradaNaColuna(this.tarefa()))),
+  );
 }

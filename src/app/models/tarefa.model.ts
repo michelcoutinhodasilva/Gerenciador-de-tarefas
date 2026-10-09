@@ -11,7 +11,10 @@ import {
 
 /** Nomes da tabela e das colunas no banco (ficam em inglês). */
 const TABELA = 'tasks';
-const COLUNAS = 'id, title, description, status, priority, due_date, position, created_at';
+/** Inclui o histórico de colunas (tabela task_status_history, preenchida por gatilho). */
+const COLUNAS =
+  'id, title, description, status, priority, due_date, position, created_at, ' +
+  'task_status_history(status, changed_at)';
 
 interface LinhaTarefa {
   id: string;
@@ -22,6 +25,7 @@ interface LinhaTarefa {
   due_date: string | null;
   position: number;
   created_at: string;
+  task_status_history?: { status: StatusTarefa; changed_at: string }[] | null;
 }
 
 interface ResultadoConsulta<T> {
@@ -96,5 +100,8 @@ function paraTarefa(linha: LinhaTarefa): Tarefa {
     prazo: linha.due_date ?? null,
     posicao: linha.position,
     criadaEm: linha.created_at,
+    historico: (linha.task_status_history ?? [])
+      .map(({ status, changed_at }) => ({ status, desde: changed_at }))
+      .sort((a, b) => Date.parse(a.desde) - Date.parse(b.desde)),
   };
 }

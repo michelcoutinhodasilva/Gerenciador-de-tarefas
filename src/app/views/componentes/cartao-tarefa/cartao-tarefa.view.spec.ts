@@ -11,12 +11,14 @@ const tarefa: Tarefa = {
   prazo: null,
   posicao: 0,
   criadaEm: '2026-10-02T12:00:00Z',
+  historico: [],
 };
 
 async function preparar(campos: Partial<Tarefa> = {}) {
   const fixture = TestBed.createComponent(CartaoTarefaView);
   fixture.componentRef.setInput('tarefa', { ...tarefa, ...campos });
   fixture.componentRef.setInput('hoje', '2026-10-02');
+  fixture.componentRef.setInput('agora', Date.parse('2026-10-02T15:30:00Z'));
   await fixture.whenStable();
   const elemento = fixture.nativeElement as HTMLElement;
   const texto = (testId: string) =>
@@ -39,6 +41,25 @@ describe('CartaoTarefaView', () => {
     expect((await preparar({ prazo: '2026-09-30' })).texto('prazo')).toBe('Atrasada · 30/09');
     expect((await preparar({ prazo: '2026-10-02' })).texto('prazo')).toBe('Hoje · 02/10');
     expect((await preparar({ prazo: '2026-10-09' })).texto('prazo')).toBe('09/10');
+  });
+
+  it('mostra há quanto tempo a tarefa existe e está na coluna', async () => {
+    const { texto } = await preparar();
+
+    expect(texto('criada')).toContain('02/10/2026');
+    expect(texto('criada')).toContain('há 3h 30min');
+    expect(texto('na-coluna')).toBe('Nesta coluna há 3h 30min');
+  });
+
+  it('conta o tempo na coluna a partir da última troca de coluna', async () => {
+    const { texto } = await preparar({
+      historico: [
+        { status: 'doing', desde: '2026-10-02T12:00:00Z' },
+        { status: 'todo', desde: '2026-10-02T15:00:00Z' },
+      ],
+    });
+
+    expect(texto('na-coluna')).toBe('Nesta coluna há 30 min');
   });
 
   it('avisa quando clicam em concluir, editar e excluir', async () => {

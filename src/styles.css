@@ -518,14 +518,14 @@ textarea:focus-visible {
   line-height: 1.55;
 }
 
-app-board-view p-button.board-primary-action {
+app-quadro-view p-button.board-primary-action {
   display: inline-flex;
   flex: 0 0 auto;
 }
 
-app-board-view p-button.board-primary-action .p-button,
+app-quadro-view p-button.board-primary-action .p-button,
 app-login-view p-button.auth-submit .p-button,
-app-task-dialog p-button.dialog-save-action .p-button {
+app-janela-tarefa p-button.dialog-save-action .p-button {
   border: 1px solid var(--green);
   border-radius: 9px;
   background: var(--green);
@@ -540,14 +540,14 @@ app-task-dialog p-button.dialog-save-action .p-button {
     box-shadow 150ms ease;
 }
 
-app-board-view p-button.board-primary-action .p-button {
+app-quadro-view p-button.board-primary-action .p-button {
   min-height: 40px;
   padding: 0 15px;
 }
 
-app-board-view p-button.board-primary-action .p-button:hover,
+app-quadro-view p-button.board-primary-action .p-button:hover,
 app-login-view p-button.auth-submit .p-button:hover,
-app-task-dialog p-button.dialog-save-action .p-button:hover {
+app-janela-tarefa p-button.dialog-save-action .p-button:hover {
   transform: translateY(-1px);
   border-color: var(--green-dark);
   background: var(--green-dark);
@@ -856,7 +856,7 @@ app-task-dialog p-button.dialog-save-action .p-button:hover {
   gap: 14px;
 }
 
-app-kanban-column {
+app-coluna-kanban {
   display: flex;
   width: 304px;
   min-width: 0;
@@ -996,7 +996,7 @@ app-kanban-column {
   text-align: center;
 }
 
-app-task-card {
+app-cartao-tarefa {
   display: block;
 }
 
@@ -1381,12 +1381,12 @@ app-task-card {
   padding-top: 3px;
 }
 
-app-task-dialog p-button.dialog-cancel-action,
-app-task-dialog p-button.dialog-save-action {
+app-janela-tarefa p-button.dialog-cancel-action,
+app-janela-tarefa p-button.dialog-save-action {
   display: inline-flex;
 }
 
-app-task-dialog p-button.dialog-cancel-action .p-button {
+app-janela-tarefa p-button.dialog-cancel-action .p-button {
   min-height: 38px;
   padding: 0 12px;
   border-radius: 8px;
@@ -1395,12 +1395,12 @@ app-task-dialog p-button.dialog-cancel-action .p-button {
   font-size: 11px;
 }
 
-app-task-dialog p-button.dialog-cancel-action .p-button:hover {
+app-janela-tarefa p-button.dialog-cancel-action .p-button:hover {
   background: #f0f3f0;
   color: #36463b;
 }
 
-app-task-dialog p-button.dialog-save-action .p-button {
+app-janela-tarefa p-button.dialog-save-action .p-button {
   min-height: 38px;
   padding: 0 14px;
   font-size: 11px;
@@ -2044,7 +2044,7 @@ app-login-view p-button.auth-submit .p-button {
     font-size: 10px;
   }
 
-  app-board-view p-button.board-primary-action .p-button {
+  app-quadro-view p-button.board-primary-action .p-button {
     min-height: 36px;
     padding: 0 10px;
     font-size: 10px;
@@ -2111,7 +2111,7 @@ app-login-view p-button.auth-submit .p-button {
     height: 38px;
   }
 
-  app-kanban-column {
+  app-coluna-kanban {
     width: 284px;
     flex-basis: 284px;
   }
@@ -2151,7 +2151,7 @@ app-login-view p-button.auth-submit .p-button {
     font-size: 22px;
   }
 
-  app-board-view p-button.board-primary-action .p-button {
+  app-quadro-view p-button.board-primary-action .p-button {
     min-height: 34px;
     padding: 0 8px;
     font-size: 9px;

@@ -1,0 +1,51 @@
+<section class="kanban-column" [attr.data-status]="status()" [attr.aria-label]="rotulo()">
+  <header class="column-header">
+    <div class="column-title-group">
+      <span class="column-status-dot" [class]="corPonto()" aria-hidden="true"></span>
+      <h2>{{ rotulo() }}</h2>
+      <span data-testid="total" class="column-count">{{ tarefas().length }}</span>
+    </div>
+    <button
+      type="button"
+      data-testid="adicionar"
+      class="column-add"
+      [attr.aria-label]="'Nova tarefa em ' + rotulo()"
+      title="Nova tarefa"
+      (click)="adicionar.emit()"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        aria-hidden="true"
+      >
+        <path d="M12 5v14M5 12h14" />
+      </svg>
+    </button>
+  </header>
+
+  <div
+    cdkDropList
+    [cdkDropListData]="status()"
+    [cdkDropListDisabled]="filtrando()"
+    (cdkDropListDropped)="soltou.emit($event)"
+    class="column-cards"
+  >
+    @for (tarefa of tarefas(); track tarefa.id) {
+      <app-cartao-tarefa
+        cdkDrag
+        [cdkDragData]="tarefa"
+        [tarefa]="tarefa"
+        [hoje]="hoje()"
+        (editar)="editar.emit(tarefa)"
+        (excluir)="excluir.emit(tarefa)"
+        (concluir)="concluir.emit(tarefa)"
+      />
+    } @empty {
+      <p class="column-empty">
+        {{ filtrando() ? 'Nenhuma tarefa encontrada' : 'Arraste uma tarefa para cá' }}
+      </p>
+    }
+  </div>
+</section>

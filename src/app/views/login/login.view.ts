@@ -2,9 +2,9 @@ import { Component, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
-import { AuthController } from '../../controllers/auth.controller';
+import { AutenticacaoController } from '../../controllers/autenticacao.controller';
 
-type Mode = 'signIn' | 'signUp';
+type Modo = 'entrar' | 'cadastrar';
 
 /** View: tela de login/cadastro. As regras ficam no Model; aqui só se coleta e envia. */
 @Component({
@@ -13,21 +13,21 @@ type Mode = 'signIn' | 'signUp';
   templateUrl: './login.view.html',
 })
 export class LoginView {
-  protected readonly auth = inject(AuthController);
-  protected readonly mode = signal<Mode>('signIn');
-  protected readonly form = inject(NonNullableFormBuilder).group({ email: '', password: '' });
+  protected readonly autenticacao = inject(AutenticacaoController);
+  protected readonly modo = signal<Modo>('entrar');
+  protected readonly formulario = inject(NonNullableFormBuilder).group({ email: '', senha: '' });
 
-  protected toggleMode(): void {
-    this.mode.update((mode) => (mode === 'signIn' ? 'signUp' : 'signIn'));
-    this.auth.clearError();
+  protected alternarModo(): void {
+    this.modo.update((modo) => (modo === 'entrar' ? 'cadastrar' : 'entrar'));
+    this.autenticacao.limparErro();
   }
 
-  protected submit(): void {
-    const credentials = this.form.getRawValue();
-    if (this.mode() === 'signIn') {
-      this.auth.signIn(credentials);
+  protected enviar(): void {
+    const credenciais = this.formulario.getRawValue();
+    if (this.modo() === 'entrar') {
+      this.autenticacao.entrar(credenciais);
     } else {
-      this.auth.signUp(credentials);
+      this.autenticacao.cadastrar(credenciais);
     }
   }
 }

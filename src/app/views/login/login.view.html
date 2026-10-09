@@ -82,19 +82,19 @@
 
       <div class="auth-heading">
         <span class="auth-kicker">{{
-          mode() === 'signIn' ? 'ACESSO À CONTA' : 'NOVO CADASTRO'
+          modo() === 'entrar' ? 'ACESSO À CONTA' : 'NOVO CADASTRO'
         }}</span>
-        <h1>{{ mode() === 'signIn' ? 'Entre na sua conta' : 'Crie sua conta' }}</h1>
+        <h1>{{ modo() === 'entrar' ? 'Entre na sua conta' : 'Crie sua conta' }}</h1>
         <p>
           {{
-            mode() === 'signIn'
+            modo() === 'entrar'
               ? 'Acesse seu quadro e continue de onde parou.'
               : 'Crie seu acesso e organize seu fluxo de trabalho.'
           }}
         </p>
       </div>
 
-      <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+      <form [formGroup]="formulario" (ngSubmit)="enviar()" class="auth-form">
         <label class="auth-field">
           <span>E-mail</span>
           <input
@@ -114,30 +114,30 @@
             pInputText
             class="auth-input"
             type="password"
-            formControlName="password"
-            data-testid="password"
+            formControlName="senha"
+            data-testid="senha"
             placeholder="••••••••"
-            [attr.autocomplete]="mode() === 'signIn' ? 'current-password' : 'new-password'"
+            [attr.autocomplete]="modo() === 'entrar' ? 'current-password' : 'new-password'"
           />
         </label>
 
-        @if (auth.error(); as error) {
-          <p data-testid="error" role="alert" class="auth-error">{{ error }}</p>
+        @if (autenticacao.erro(); as erro) {
+          <p data-testid="erro" role="alert" class="auth-error">{{ erro }}</p>
         }
 
         <p-button
           class="auth-submit"
           type="submit"
-          [label]="mode() === 'signIn' ? 'Entrar' : 'Criar conta'"
-          [loading]="auth.loading()"
+          [label]="modo() === 'entrar' ? 'Entrar' : 'Criar conta'"
+          [loading]="autenticacao.carregando()"
           [fluid]="true"
         />
       </form>
 
       <p class="auth-switch">
-        {{ mode() === 'signIn' ? 'Ainda não tem conta?' : 'Já tem conta?' }}
-        <button type="button" data-testid="toggle-mode" (click)="toggleMode()">
-          {{ mode() === 'signIn' ? 'Cadastre-se' : 'Entrar' }}
+        {{ modo() === 'entrar' ? 'Ainda não tem conta?' : 'Já tem conta?' }}
+        <button type="button" data-testid="alternar-modo" (click)="alternarModo()">
+          {{ modo() === 'entrar' ? 'Cadastre-se' : 'Entrar' }}
         </button>
       </p>
     </div>

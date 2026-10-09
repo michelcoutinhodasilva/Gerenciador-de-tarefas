@@ -1,0 +1,98 @@
+<article
+  class="task-card"
+  [attr.data-status]="tarefa().status"
+  [class.task-card--overdue]="atrasada()"
+  [class.task-card--done]="tarefa().status === 'done'"
+  (dblclick)="editar.emit()"
+>
+  <div class="task-card-heading">
+    <h3 class="task-title" [class.task-title--done]="tarefa().status === 'done'">
+      {{ tarefa().titulo }}
+    </h3>
+
+    <div class="task-actions">
+      @if (tarefa().status !== 'done') {
+        <button
+          type="button"
+          data-testid="concluir"
+          class="task-action task-action--complete"
+          aria-label="Concluir tarefa"
+          title="Concluir"
+          (click)="concluir.emit()"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.9"
+            aria-hidden="true"
+          >
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+        </button>
+      }
+      <button
+        type="button"
+        data-testid="editar"
+        class="task-action"
+        aria-label="Editar tarefa"
+        title="Editar"
+        (click)="editar.emit()"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          aria-hidden="true"
+        >
+          <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        data-testid="excluir"
+        class="task-action task-action--remove"
+        aria-label="Excluir tarefa"
+        title="Excluir"
+        (click)="excluir.emit()"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          aria-hidden="true"
+        >
+          <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  @if (tarefa().descricao) {
+    <p class="task-description">{{ tarefa().descricao }}</p>
+  }
+
+  <div class="task-card-meta">
+    <span class="task-priority" [class]="estiloPrioridade()" data-testid="prioridade">
+      <span aria-hidden="true"></span>{{ rotuloPrioridade() }}
+    </span>
+
+    @if (tarefa().prazo) {
+      <time
+        class="task-due"
+        [class]="estiloPrazo()"
+        data-testid="prazo"
+        [attr.datetime]="tarefa().prazo"
+        title="Prazo"
+      >
+        {{ prefixoPrazo() }}{{ tarefa().prazo + 'T00:00:00' | date: 'dd/MM' }}
+      </time>
+    }
+
+    <time class="task-created" [attr.datetime]="tarefa().criadaEm" title="Criada em">
+      {{ tarefa().criadaEm | date: 'dd/MM/yyyy' }}
+    </time>
+  </div>
+</article>

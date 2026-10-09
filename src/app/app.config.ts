@@ -2,16 +2,16 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/
 import { provideRouter } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
-import { routes } from './app.routes';
-import { AppTheme } from './core/theme';
+import { rotas } from './app.rotas';
+import { TemaApp } from './nucleo/tema';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
+    provideRouter(rotas),
     providePrimeNG({
       theme: {
-        preset: AppTheme,
+        preset: TemaApp,
         options: {
           darkModeSelector: '.app-dark',
           cssLayer: { name: 'primeng', order: 'theme, base, primeng' },

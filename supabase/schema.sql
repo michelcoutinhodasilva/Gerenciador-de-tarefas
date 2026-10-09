@@ -1,5 +1,5 @@
 -- Rode este arquivo no Supabase: Dashboard → SQL Editor → New query → Run.
--- Os limites de tamanho são os mesmos de src/app/models/entities/task.ts (TASK_LIMITS).
+-- Os limites de tamanho são os mesmos de src/app/models/entidades/tarefa.ts (LIMITES_TAREFA).
 
 create table if not exists public.tasks (
   id          uuid primary key default gen_random_uuid(),

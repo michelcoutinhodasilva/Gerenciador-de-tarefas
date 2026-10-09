@@ -1,0 +1,98 @@
+<p-dialog
+  styleClass="task-form-dialog"
+  [(visible)]="visivel"
+  [header]="tarefa() ? 'Editar tarefa' : 'Nova tarefa'"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '32rem', maxWidth: 'calc(100vw - 2rem)' }"
+>
+  <form [formGroup]="formulario" (ngSubmit)="enviar()" class="task-dialog-form">
+    <label class="form-field">
+      <span class="form-field-label">Título</span>
+      <input
+        pInputText
+        class="form-input"
+        formControlName="titulo"
+        data-testid="titulo"
+        placeholder="Ex.: Revisar proposta do cliente"
+        [maxlength]="limites.tituloMax"
+        autocomplete="off"
+        autofocus
+      />
+    </label>
+
+    <label class="form-field">
+      <span class="form-field-label">
+        Descrição <span class="form-field-optional">(opcional)</span>
+      </span>
+      <textarea
+        pTextarea
+        class="form-input form-textarea"
+        formControlName="descricao"
+        data-testid="descricao"
+        rows="5"
+        placeholder="Detalhes, links, próximos passos..."
+        [maxlength]="limites.descricaoMax"
+      ></textarea>
+    </label>
+
+    <div class="task-dialog-options">
+      <div class="form-field">
+        <span id="rotulo-prioridade" class="form-field-label">Prioridade</span>
+        <p-selectbutton
+          formControlName="prioridade"
+          data-testid="prioridade"
+          ariaLabelledBy="rotulo-prioridade"
+          [options]="prioridades"
+          optionLabel="rotulo"
+          optionValue="valor"
+          [allowEmpty]="false"
+          size="small"
+        />
+      </div>
+
+      <label class="form-field">
+        <span class="form-field-label">
+          Prazo <span class="form-field-optional">(opcional)</span>
+        </span>
+        <input
+          pInputText
+          class="form-input form-date-input"
+          type="date"
+          formControlName="prazo"
+          data-testid="prazo"
+        />
+      </label>
+    </div>
+    <div class="quick-date-row">
+      <button type="button" class="quick-date-button" (click)="definirPrazo(0)">Hoje</button>
+      <button type="button" class="quick-date-button" (click)="definirPrazo(1)">Amanhã</button>
+      @if (formulario.controls.prazo.value) {
+        <button
+          type="button"
+          class="quick-date-button quick-date-button--muted"
+          (click)="formulario.controls.prazo.setValue('')"
+        >
+          Sem prazo
+        </button>
+      }
+    </div>
+
+    <div class="task-dialog-actions">
+      <p-button
+        class="dialog-cancel-action"
+        label="Cancelar"
+        severity="secondary"
+        [text]="true"
+        (onClick)="visivel.set(false)"
+      />
+      <p-button
+        class="dialog-save-action"
+        type="submit"
+        [label]="tarefa() ? 'Salvar' : 'Criar tarefa'"
+        [loading]="salvando()"
+      />
+    </div>
+  </form>
+</p-dialog>

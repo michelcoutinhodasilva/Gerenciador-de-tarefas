@@ -1,60 +1,62 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { AuthController } from '../../controllers/auth.controller';
+import { AutenticacaoController } from '../../controllers/autenticacao.controller';
 import { LoginView } from './login.view';
 
-function type(element: HTMLElement, testId: string, value: string): void {
-  const input = element.querySelector<HTMLInputElement>(`[data-testid="${testId}"]`)!;
-  input.value = value;
-  input.dispatchEvent(new Event('input'));
+function digitar(elemento: HTMLElement, testId: string, valor: string): void {
+  const campo = elemento.querySelector<HTMLInputElement>(`[data-testid="${testId}"]`)!;
+  campo.value = valor;
+  campo.dispatchEvent(new Event('input'));
 }
 
-async function setup() {
-  const auth = {
-    error: signal<string | null>(null),
-    loading: signal(false),
-    signIn: vi.fn(),
-    signUp: vi.fn(),
-    clearError: vi.fn(),
+async function preparar() {
+  const autenticacao = {
+    erro: signal<string | null>(null),
+    carregando: signal(false),
+    entrar: vi.fn(),
+    cadastrar: vi.fn(),
+    limparErro: vi.fn(),
   };
-  TestBed.configureTestingModule({ providers: [{ provide: AuthController, useValue: auth }] });
+  TestBed.configureTestingModule({
+    providers: [{ provide: AutenticacaoController, useValue: autenticacao }],
+  });
   const fixture = TestBed.createComponent(LoginView);
   await fixture.whenStable();
-  const element = fixture.nativeElement as HTMLElement;
-  const submit = () => element.querySelector('form')!.dispatchEvent(new Event('submit'));
-  return { fixture, element, auth, submit };
+  const elemento = fixture.nativeElement as HTMLElement;
+  const enviar = () => elemento.querySelector('form')!.dispatchEvent(new Event('submit'));
+  return { fixture, elemento, autenticacao, enviar };
 }
 
 describe('LoginView', () => {
   it('envia e-mail e senha para o controller ao entrar', async () => {
-    const { element, auth, submit } = await setup();
+    const { elemento, autenticacao, enviar } = await preparar();
 
-    type(element, 'email', 'ana@empresa.com');
-    type(element, 'password', '123456');
-    submit();
+    digitar(elemento, 'email', 'ana@empresa.com');
+    digitar(elemento, 'senha', '123456');
+    enviar();
 
-    expect(auth.signIn).toHaveBeenCalledWith({ email: 'ana@empresa.com', password: '123456' });
+    expect(autenticacao.entrar).toHaveBeenCalledWith({ email: 'ana@empresa.com', senha: '123456' });
   });
 
   it('usa o cadastro depois de trocar o modo', async () => {
-    const { fixture, element, auth, submit } = await setup();
+    const { fixture, elemento, autenticacao, enviar } = await preparar();
 
-    element.querySelector<HTMLButtonElement>('[data-testid="toggle-mode"]')!.click();
+    elemento.querySelector<HTMLButtonElement>('[data-testid="alternar-modo"]')!.click();
     await fixture.whenStable();
-    submit();
+    enviar();
 
-    expect(auth.clearError).toHaveBeenCalled();
-    expect(auth.signUp).toHaveBeenCalled();
-    expect(element.querySelector('h1')?.textContent).toContain('Crie sua conta');
+    expect(autenticacao.limparErro).toHaveBeenCalled();
+    expect(autenticacao.cadastrar).toHaveBeenCalled();
+    expect(elemento.querySelector('h1')?.textContent).toContain('Crie sua conta');
   });
 
   it('mostra o erro vindo do controller', async () => {
-    const { fixture, element, auth } = await setup();
+    const { fixture, elemento, autenticacao } = await preparar();
 
-    auth.error.set('E-mail ou senha incorretos.');
+    autenticacao.erro.set('E-mail ou senha incorretos.');
     await fixture.whenStable();
 
-    expect(element.querySelector('[data-testid="error"]')?.textContent).toContain(
+    expect(elemento.querySelector('[data-testid="erro"]')?.textContent).toContain(
       'E-mail ou senha incorretos.',
     );
   });

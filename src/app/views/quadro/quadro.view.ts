@@ -32,6 +32,7 @@ export class QuadroView implements OnInit {
   protected readonly editando = signal<Tarefa | null>(null);
   private readonly statusNovaTarefa = signal<StatusTarefa>('todo');
   private readonly campoBusca = viewChild<ElementRef<HTMLInputElement>>('busca');
+  private readonly janela = viewChild(JanelaTarefaView);
 
   protected readonly filtros = FILTROS_TAREFA.map((valor) => ({
     valor,
@@ -72,7 +73,13 @@ export class QuadroView implements OnInit {
     const salvou = tarefa
       ? await this.tarefas.atualizar(tarefa.id, dados)
       : await this.tarefas.criar(dados, this.statusNovaTarefa());
-    if (salvou) {
+    if (!salvou) {
+      return;
+    }
+    const janela = this.janela();
+    if (!tarefa && janela?.criarOutra()) {
+      janela.prepararProxima();
+    } else {
       this.janelaAberta.set(false);
     }
   }

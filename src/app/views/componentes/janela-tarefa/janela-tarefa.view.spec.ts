@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { Tarefa } from '../../../models/entidades/tarefa';
+import { dataHoje, Tarefa } from '../../../models/entidades/tarefa';
 import { JanelaTarefaView } from './janela-tarefa.view';
 
 const tarefa: Tarefa = {
@@ -48,5 +48,43 @@ describe('JanelaTarefaView', () => {
     const { historico } = await preparar(null);
 
     expect(historico()).toBeNull();
+  });
+
+  const criarOutra = () => document.querySelector<HTMLInputElement>('[data-testid="criar-outra"]');
+
+  it('mostra "Criar outra" só ao criar, e marcar liga a opção', async () => {
+    const { fixture } = await preparar(null);
+
+    criarOutra()!.click();
+
+    expect(fixture.componentInstance.criarOutra()).toBe(true);
+  });
+
+  it('não mostra "Criar outra" ao editar', async () => {
+    await preparar(tarefa);
+
+    expect(criarOutra()).toBeNull();
+  });
+
+  it('prepara a próxima: limpa título e descrição e mantém prioridade e prazo', async () => {
+    const { fixture } = await preparar(null);
+    const salvar = vi.fn();
+    fixture.componentInstance.salvar.subscribe(salvar);
+    const titulo = document.querySelector<HTMLInputElement>('[data-testid="titulo"]')!;
+    titulo.value = 'Primeira';
+    titulo.dispatchEvent(new Event('input'));
+    document.querySelector<HTMLButtonElement>('.quick-date-button')!.click();
+
+    fixture.componentInstance.prepararProxima();
+    document.querySelector<HTMLFormElement>('.task-dialog-form')!.requestSubmit();
+
+    expect(titulo.value).toBe('');
+    expect(document.activeElement).toBe(titulo);
+    expect(salvar).toHaveBeenCalledWith({
+      titulo: '',
+      descricao: '',
+      prioridade: 'medium',
+      prazo: dataHoje(),
+    });
   });
 });

@@ -11,6 +11,7 @@
     <label class="form-field">
       <span class="form-field-label">Título</span>
       <input
+        #campoTitulo
         pInputText
         class="form-input"
         formControlName="titulo"
@@ -97,6 +98,18 @@
     }
 
     <div class="task-dialog-actions">
+      @if (!tarefa()) {
+        <label class="dialog-create-more">
+          <input
+            #marcarCriarOutra
+            type="checkbox"
+            data-testid="criar-outra"
+            [checked]="criarOutra()"
+            (change)="criarOutra.set(marcarCriarOutra.checked)"
+          />
+          Criar outra
+        </label>
+      }
       <p-button
         class="dialog-cancel-action"
         label="Cancelar"

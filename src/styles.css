@@ -1437,6 +1437,24 @@ app-cartao-tarefa {
   padding-top: 3px;
 }
 
+.dialog-create-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-right: auto;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.dialog-create-more input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--green);
+  cursor: pointer;
+}
+
 app-janela-tarefa p-button.dialog-cancel-action,
 app-janela-tarefa p-button.dialog-save-action {
   display: inline-flex;

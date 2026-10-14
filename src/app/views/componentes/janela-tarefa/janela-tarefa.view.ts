@@ -1,5 +1,16 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, effect, inject, input, model, output } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  model,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
@@ -33,6 +44,10 @@ export class JanelaTarefaView {
   readonly agora = input(0);
   readonly salvando = input(false);
   readonly salvar = output<DadosTarefa>();
+  /** Ao criar: depois de salvar, a janela continua aberta para a próxima tarefa. */
+  readonly criarOutra = signal(false);
+
+  private readonly campoTitulo = viewChild<ElementRef<HTMLInputElement>>('campoTitulo');
 
   /** Tempo em cada coluna da tarefa aberta ("—" onde ela nunca esteve). */
   protected readonly temposPorColuna = computed(() => {
@@ -80,6 +95,12 @@ export class JanelaTarefaView {
     const data = new Date();
     data.setDate(data.getDate() + diasAPartirDeHoje);
     this.formulario.controls.prazo.setValue(dataHoje(data));
+  }
+
+  /** Limpa título e descrição para a próxima tarefa; mantém prioridade e prazo. */
+  prepararProxima(): void {
+    this.formulario.patchValue({ titulo: '', descricao: '' });
+    this.campoTitulo()?.nativeElement.focus();
   }
 
   protected enviar(): void {

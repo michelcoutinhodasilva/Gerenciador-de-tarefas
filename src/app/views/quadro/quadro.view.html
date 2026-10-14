@@ -238,114 +238,114 @@
       </section>
 
       @if (tela() === 'calendario') {
-      <section class="board-section" aria-labelledby="titulo-calendario">
-        <div class="board-section-header">
-          <div class="board-section-heading">
-            <h2 id="titulo-calendario">Calendário</h2>
-            <span>Quando cada tarefa foi criada e quando foi entregue.</span>
+        <section class="board-section" aria-labelledby="titulo-calendario">
+          <div class="board-section-header">
+            <div class="board-section-heading">
+              <h2 id="titulo-calendario">Calendário</h2>
+              <span>Quando cada tarefa foi criada e quando foi entregue.</span>
+            </div>
           </div>
-        </div>
-        <app-calendario
-          [tarefas]="tarefas.tarefas()"
-          [hoje]="tarefas.hoje()"
-          (abrir)="abrirEdicao($event)"
-        />
-      </section>
+          <app-calendario
+            [tarefas]="tarefas.tarefas()"
+            [hoje]="tarefas.hoje()"
+            (abrir)="abrirEdicao($event)"
+          />
+        </section>
       } @else {
-      <section class="board-section" aria-labelledby="titulo-fluxo">
-        <div class="board-section-header">
-          <div class="board-section-heading">
-            <h2 id="titulo-fluxo">Fluxo de trabalho</h2>
-            <span>Arraste as tarefas para atualizar o andamento.</span>
-          </div>
-          <div class="board-tools">
-            <label class="board-search" [class.board-search--filled]="tarefas.busca()">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-                aria-hidden="true"
-              >
-                <circle cx="10.8" cy="10.8" r="6.8" />
-                <path d="m16 16 4 4" />
-              </svg>
-              <input
-                #busca
-                type="search"
-                data-testid="busca"
-                placeholder="Buscar no quadro"
-                aria-label="Buscar tarefas"
-                [value]="tarefas.busca()"
-                (input)="tarefas.busca.set(busca.value)"
-                (keydown.escape)="limparBusca(busca)"
-              />
-              @if (tarefas.busca()) {
-                <button
-                  type="button"
-                  class="search-clear"
-                  aria-label="Limpar busca"
-                  (click)="limparBusca(busca)"
+        <section class="board-section" aria-labelledby="titulo-fluxo">
+          <div class="board-section-header">
+            <div class="board-section-heading">
+              <h2 id="titulo-fluxo">Fluxo de trabalho</h2>
+              <span>Arraste as tarefas para atualizar o andamento.</span>
+            </div>
+            <div class="board-tools">
+              <label class="board-search" [class.board-search--filled]="tarefas.busca()">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  aria-hidden="true"
                 >
-                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                    <path d="m6 6 8 8m0-8-8 8" />
-                  </svg>
-                </button>
-              } @else {
-                <kbd>/</kbd>
-              }
-            </label>
-            @if (tarefas.filtrando()) {
-              <div class="active-filter-note">
-                <span>Filtro ativo</span>
-                <button
-                  type="button"
-                  data-testid="limpar-filtros"
-                  (click)="tarefas.limparFiltros()"
-                >
-                  Limpar
-                </button>
-              </div>
-            }
-          </div>
-        </div>
-
-        <div class="board-scroll">
-          @if (tarefas.carregando()) {
-            <div
-              class="board-columns board-skeleton"
-              aria-busy="true"
-              aria-label="Carregando tarefas"
-            >
-              @for (coluna of tarefas.colunas(); track coluna.status) {
-                <div class="skeleton-column">
-                  <div class="skeleton-heading"></div>
-                  <div class="skeleton-card"></div>
-                  <div class="skeleton-card skeleton-card--short"></div>
+                  <circle cx="10.8" cy="10.8" r="6.8" />
+                  <path d="m16 16 4 4" />
+                </svg>
+                <input
+                  #busca
+                  type="search"
+                  data-testid="busca"
+                  placeholder="Buscar no quadro"
+                  aria-label="Buscar tarefas"
+                  [value]="tarefas.busca()"
+                  (input)="tarefas.busca.set(busca.value)"
+                  (keydown.escape)="limparBusca(busca)"
+                />
+                @if (tarefas.busca()) {
+                  <button
+                    type="button"
+                    class="search-clear"
+                    aria-label="Limpar busca"
+                    (click)="limparBusca(busca)"
+                  >
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <path d="m6 6 8 8m0-8-8 8" />
+                    </svg>
+                  </button>
+                } @else {
+                  <kbd>/</kbd>
+                }
+              </label>
+              @if (tarefas.filtrando()) {
+                <div class="active-filter-note">
+                  <span>Filtro ativo</span>
+                  <button
+                    type="button"
+                    data-testid="limpar-filtros"
+                    (click)="tarefas.limparFiltros()"
+                  >
+                    Limpar
+                  </button>
                 </div>
               }
             </div>
-          } @else {
-            <div cdkDropListGroup class="board-columns">
-              @for (coluna of tarefas.colunas(); track coluna.status) {
-                <app-coluna-kanban
-                  [status]="coluna.status"
-                  [rotulo]="coluna.rotulo"
-                  [tarefas]="coluna.tarefas"
-                  [hoje]="tarefas.hoje()"
-                  [agora]="tarefas.agora()"
-                  [filtrando]="tarefas.filtrando()"
-                  (adicionar)="abrirCriacao(coluna.status)"
-                  (editar)="abrirEdicao($event)"
-                  (excluir)="confirmarExclusao($event)"
-                  (concluir)="tarefas.concluir($event.id)"
-                  (soltou)="soltar($event)"
-                />
-              }
-            </div>
-          }
-        </div>
-      </section>
+          </div>
+
+          <div class="board-scroll">
+            @if (tarefas.carregando()) {
+              <div
+                class="board-columns board-skeleton"
+                aria-busy="true"
+                aria-label="Carregando tarefas"
+              >
+                @for (coluna of tarefas.colunas(); track coluna.status) {
+                  <div class="skeleton-column">
+                    <div class="skeleton-heading"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card skeleton-card--short"></div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div cdkDropListGroup class="board-columns">
+                @for (coluna of tarefas.colunas(); track coluna.status) {
+                  <app-coluna-kanban
+                    [status]="coluna.status"
+                    [rotulo]="coluna.rotulo"
+                    [tarefas]="coluna.tarefas"
+                    [hoje]="tarefas.hoje()"
+                    [agora]="tarefas.agora()"
+                    [filtrando]="tarefas.filtrando()"
+                    (adicionar)="abrirCriacao(coluna.status)"
+                    (editar)="abrirEdicao($event)"
+                    (excluir)="confirmarExclusao($event)"
+                    (concluir)="tarefas.concluir($event.id)"
+                    (soltou)="soltar($event)"
+                  />
+                }
+              </div>
+            }
+          </div>
+        </section>
       }
     </div>
   </main>
@@ -357,6 +357,7 @@
   [agora]="tarefas.agora()"
   [salvando]="tarefas.salvando()"
   (salvar)="salvar($event)"
+  (salvarVarias)="salvarVarias($event)"
 />
 
 <app-comemoracao [conquista]="tarefas.conquista()" (fechar)="tarefas.dispensarConquista()" />

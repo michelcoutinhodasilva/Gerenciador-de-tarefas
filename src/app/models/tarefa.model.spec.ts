@@ -114,6 +114,41 @@ describe('TarefaModel', () => {
     expect(banco.from).not.toHaveBeenCalled();
   });
 
+  it('cria várias tarefas numa única gravação, em posições seguidas', async () => {
+    const { model, banco, consulta } = preparar({
+      data: [
+        { ...linha, id: '2', position: 6 },
+        { ...linha, id: '1', position: 5 },
+      ],
+      error: null,
+    });
+
+    const tarefas = await model.criarVarias(
+      [
+        { ...vazio, titulo: ' Um ' },
+        { ...vazio, titulo: 'Dois', prioridade: 'high' },
+      ],
+      'todo',
+      5,
+    );
+
+    expect(banco.from).toHaveBeenCalledTimes(1);
+    expect(consulta['insert']).toHaveBeenCalledWith([
+      { title: 'Um', description: '', priority: 'medium', due_date: null, status: 'todo', position: 5 },
+      { title: 'Dois', description: '', priority: 'high', due_date: null, status: 'todo', position: 6 },
+    ]);
+    expect(tarefas.map((tarefa) => tarefa.id)).toEqual(['1', '2']);
+  });
+
+  it('diz qual item da lista é inválido e não chama o banco', async () => {
+    const { model, banco } = preparar({ data: [], error: null });
+
+    await expect(
+      model.criarVarias([{ ...vazio, titulo: 'Ok' }, vazio], 'todo', 0),
+    ).rejects.toThrow('Tarefa 2: O título é obrigatório.');
+    expect(banco.from).not.toHaveBeenCalled();
+  });
+
   it('atualiza a tarefa pelo id', async () => {
     const { model, consulta } = preparar({ data: linha, error: null });
 

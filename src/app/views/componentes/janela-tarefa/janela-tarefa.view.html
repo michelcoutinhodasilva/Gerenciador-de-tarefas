@@ -8,35 +8,65 @@
   [style]="{ width: '32rem', maxWidth: 'calc(100vw - 2rem)' }"
 >
   <form [formGroup]="formulario" (ngSubmit)="enviar()" class="task-dialog-form">
-    <label class="form-field">
-      <span class="form-field-label">Título</span>
-      <input
-        #campoTitulo
-        pInputText
-        class="form-input"
-        formControlName="titulo"
-        data-testid="titulo"
-        placeholder="Ex.: Revisar proposta do cliente"
-        [maxlength]="limites.tituloMax"
-        autocomplete="off"
-        autofocus
-      />
-    </label>
+    @if (itensColados().length) {
+      <section class="paste-preview" aria-label="Tarefas do texto colado" data-testid="lista-colada">
+        <div class="paste-preview-header">
+          <strong>{{ itensColados().length }} tarefas encontradas</strong>
+          <button
+            type="button"
+            class="quick-date-button"
+            data-testid="usar-uma"
+            (click)="usarComoUma()"
+          >
+            Usar como uma tarefa só
+          </button>
+        </div>
+        <ol>
+          @for (item of itensColados(); track $index) {
+            <li>
+              <span>{{ item.titulo }}</span>
+              @if (item.descricao) {
+                <small>{{ item.descricao }}</small>
+              }
+            </li>
+          }
+        </ol>
+      </section>
+    } @else {
+      <label class="form-field">
+        <span class="form-field-label">Título</span>
+        <input
+          #campoTitulo
+          pInputText
+          class="form-input"
+          formControlName="titulo"
+          data-testid="titulo"
+          placeholder="Ex.: Revisar proposta do cliente"
+          [maxlength]="limites.tituloMax"
+          autocomplete="off"
+          autofocus
+          (paste)="aoColar($event)"
+        />
+        @if (!tarefa()) {
+          <span class="form-field-hint">Dica: cole uma lista para criar várias de uma vez.</span>
+        }
+      </label>
 
-    <label class="form-field">
-      <span class="form-field-label">
-        Descrição <span class="form-field-optional">(opcional)</span>
-      </span>
-      <textarea
-        pTextarea
-        class="form-input form-textarea"
-        formControlName="descricao"
-        data-testid="descricao"
-        rows="5"
-        placeholder="Detalhes, links, próximos passos..."
-        [maxlength]="limites.descricaoMax"
-      ></textarea>
-    </label>
+      <label class="form-field">
+        <span class="form-field-label">
+          Descrição <span class="form-field-optional">(opcional)</span>
+        </span>
+        <textarea
+          pTextarea
+          class="form-input form-textarea"
+          formControlName="descricao"
+          data-testid="descricao"
+          rows="5"
+          placeholder="Detalhes, links, próximos passos..."
+          [maxlength]="limites.descricaoMax"
+        ></textarea>
+      </label>
+    }
 
     <div class="task-dialog-options">
       <div class="form-field">
@@ -98,7 +128,7 @@
     }
 
     <div class="task-dialog-actions">
-      @if (!tarefa()) {
+      @if (!tarefa() && !itensColados().length) {
         <label class="dialog-create-more">
           <input
             #marcarCriarOutra
@@ -120,7 +150,7 @@
       <p-button
         class="dialog-save-action"
         type="submit"
-        [label]="tarefa() ? 'Salvar' : 'Criar tarefa'"
+        [label]="rotuloSalvar()"
         [loading]="salvando()"
       />
     </div>

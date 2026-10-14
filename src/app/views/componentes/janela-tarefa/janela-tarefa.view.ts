@@ -17,6 +17,7 @@ import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { SelectButton } from 'primeng/selectbutton';
 import { Textarea } from 'primeng/textarea';
+import { comoUmaTarefa, ItemLista, separarLista } from '../../../models/entidades/lista-tarefas';
 import {
   DadosTarefa,
   dataHoje,
@@ -44,8 +45,13 @@ export class JanelaTarefaView {
   readonly agora = input(0);
   readonly salvando = input(false);
   readonly salvar = output<DadosTarefa>();
+  /** Lista colada no título: entrega todas as tarefas de uma vez. */
+  readonly salvarVarias = output<DadosTarefa[]>();
   /** Ao criar: depois de salvar, a janela continua aberta para a próxima tarefa. */
   readonly criarOutra = signal(false);
+  /** Tarefas encontradas no texto colado (vazio = formulário normal). */
+  protected readonly itensColados = signal<ItemLista[]>([]);
+  private textoColado = '';
 
   private readonly campoTitulo = viewChild<ElementRef<HTMLInputElement>>('campoTitulo');
 
@@ -64,6 +70,14 @@ export class JanelaTarefaView {
     }));
   });
 
+  protected readonly rotuloSalvar = computed(() => {
+    if (this.tarefa()) {
+      return 'Salvar';
+    }
+    const total = this.itensColados().length;
+    return total ? `Criar ${total} tarefas` : 'Criar tarefa';
+  });
+
   protected readonly limites = LIMITES_TAREFA;
   protected readonly prioridades = PRIORIDADES_TAREFA.map((valor) => ({
     valor,
@@ -80,6 +94,7 @@ export class JanelaTarefaView {
     effect(() => {
       if (this.visivel()) {
         const tarefa = this.tarefa();
+        this.itensColados.set([]);
         this.formulario.reset({
           titulo: tarefa?.titulo ?? '',
           descricao: tarefa?.descricao ?? '',
@@ -103,8 +118,34 @@ export class JanelaTarefaView {
     this.campoTitulo()?.nativeElement.focus();
   }
 
+  /** Ao criar, colar texto com várias tarefas no título mostra a lista antes de criar. */
+  protected aoColar(evento: ClipboardEvent): void {
+    const texto = evento.clipboardData?.getData('text') ?? '';
+    const itens = this.tarefa() ? [] : separarLista(texto);
+    if (itens.length < 2) {
+      return;
+    }
+    evento.preventDefault();
+    this.textoColado = texto;
+    this.itensColados.set(itens);
+  }
+
+  /** Desiste da lista: o texto colado vira uma tarefa só (1ª linha no título). */
+  protected usarComoUma(): void {
+    this.formulario.patchValue(comoUmaTarefa(this.textoColado));
+    this.itensColados.set([]);
+  }
+
   protected enviar(): void {
     const valor = this.formulario.getRawValue();
-    this.salvar.emit({ ...valor, prazo: valor.prazo || null });
+    const prazo = valor.prazo || null;
+    const itens = this.itensColados();
+    if (itens.length) {
+      this.salvarVarias.emit(
+        itens.map((item) => ({ ...item, prioridade: valor.prioridade, prazo })),
+      );
+      return;
+    }
+    this.salvar.emit({ ...valor, prazo });
   }
 }

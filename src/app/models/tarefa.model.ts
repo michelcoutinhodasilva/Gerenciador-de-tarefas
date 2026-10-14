@@ -8,6 +8,7 @@ import {
   Tarefa,
   validarDadosTarefa,
 } from './entidades/tarefa';
+import { ErroValidacao } from './entidades/erro-validacao';
 
 /** Nomes da tabela e das colunas no banco (ficam em inglês). */
 const TABELA = 'tasks';
@@ -53,6 +54,23 @@ export class TarefaModel {
     return paraTarefa(desembrulhar<LinhaTarefa>(resultado));
   }
 
+  /** Grava todas numa única chamada: ou entram todas, ou nenhuma. */
+  async criarVarias(
+    lista: readonly DadosTarefa[],
+    status: StatusTarefa,
+    posicaoInicial: number,
+  ): Promise<Tarefa[]> {
+    const linhas = lista.map((dados, indice) => ({
+      ...paraLinha(validarItem(dados, indice)),
+      status,
+      position: posicaoInicial + indice,
+    }));
+    const resultado = await this.banco.from(TABELA).insert(linhas).select(COLUNAS);
+    return desembrulhar<LinhaTarefa[]>(resultado)
+      .map(paraTarefa)
+      .sort((a, b) => a.posicao - b.posicao);
+  }
+
   async atualizar(id: string, dados: DadosTarefa): Promise<Tarefa> {
     const linha = paraLinha(validarDadosTarefa(dados));
     const resultado = await this.banco
@@ -84,6 +102,18 @@ function desembrulhar<T>({ data, error }: ResultadoConsulta<unknown>): T {
     throw new Error(error.message);
   }
   return data as T;
+}
+
+/** Valida um item da lista e diz qual deles está errado. */
+function validarItem(dados: DadosTarefa, indice: number): DadosTarefa {
+  try {
+    return validarDadosTarefa(dados);
+  } catch (erro) {
+    if (erro instanceof ErroValidacao) {
+      throw new ErroValidacao(`Tarefa ${indice + 1}: ${erro.message}`);
+    }
+    throw erro;
+  }
 }
 
 function paraLinha({ titulo, descricao, prioridade, prazo }: DadosTarefa) {

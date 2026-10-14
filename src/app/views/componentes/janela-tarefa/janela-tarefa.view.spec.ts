@@ -66,6 +66,61 @@ describe('JanelaTarefaView', () => {
     expect(criarOutra()).toBeNull();
   });
 
+  /** Simula colar `texto` no campo de título. */
+  function colarNoTitulo(texto: string): Event {
+    const evento = new Event('paste', { cancelable: true });
+    Object.defineProperty(evento, 'clipboardData', { value: { getData: () => texto } });
+    document.querySelector('[data-testid="titulo"]')!.dispatchEvent(evento);
+    return evento;
+  }
+
+  const listaColada = () => document.querySelector('[data-testid="lista-colada"]');
+
+  it('colar uma lista mostra as tarefas e cria todas de uma vez', async () => {
+    const { fixture } = await preparar(null);
+    const salvarVarias = vi.fn();
+    fixture.componentInstance.salvarVarias.subscribe(salvarVarias);
+
+    const evento = colarNoTitulo('Tarefa 1 - Um\nTarefa 2 - Dois\ndetalhe do dois');
+    await fixture.whenStable();
+    document.querySelector<HTMLFormElement>('.task-dialog-form')!.requestSubmit();
+
+    expect(evento.defaultPrevented).toBe(true);
+    expect(listaColada()?.textContent).toContain('2 tarefas encontradas');
+    expect(document.querySelector('.dialog-save-action')?.textContent).toContain('Criar 2 tarefas');
+    expect(salvarVarias).toHaveBeenCalledWith([
+      { titulo: 'Um', descricao: '', prioridade: 'medium', prazo: null },
+      { titulo: 'Dois', descricao: 'detalhe do dois', prioridade: 'medium', prazo: null },
+    ]);
+  });
+
+  it('"Usar como uma tarefa só" volta ao formulário com o texto numa tarefa', async () => {
+    const { fixture } = await preparar(null);
+
+    colarNoTitulo('Reunião\nPauta: metas');
+    await fixture.whenStable();
+    document.querySelector<HTMLButtonElement>('[data-testid="usar-uma"]')!.click();
+    await fixture.whenStable();
+
+    expect(listaColada()).toBeNull();
+    expect(document.querySelector<HTMLInputElement>('[data-testid="titulo"]')!.value).toBe(
+      'Reunião',
+    );
+    expect(document.querySelector<HTMLTextAreaElement>('[data-testid="descricao"]')!.value).toBe(
+      'Pauta: metas',
+    );
+  });
+
+  it('colar uma linha só ou colar ao editar não vira lista', async () => {
+    const { fixture } = await preparar(tarefa);
+
+    const evento = colarNoTitulo('Um\nDois');
+    await fixture.whenStable();
+
+    expect(evento.defaultPrevented).toBe(false);
+    expect(listaColada()).toBeNull();
+  });
+
   it('prepara a próxima: limpa título e descrição e mantém prioridade e prazo', async () => {
     const { fixture } = await preparar(null);
     const salvar = vi.fn();

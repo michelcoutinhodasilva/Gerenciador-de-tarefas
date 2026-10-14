@@ -25,6 +25,7 @@ function preparar(iniciais: Tarefa[] = []) {
   const model = {
     listar: vi.fn().mockResolvedValue(iniciais),
     criar: vi.fn(),
+    criarVarias: vi.fn(),
     atualizar: vi.fn(),
     excluir: vi.fn().mockResolvedValue(undefined),
     salvarPosicoes: vi.fn().mockResolvedValue(undefined),
@@ -73,6 +74,35 @@ describe('TarefaController', () => {
     expect(model.criar).toHaveBeenCalledWith({ ...vazio, titulo: 'b' }, 'todo', 1);
     expect(controller.tarefas().map((item) => item.id)).toEqual(['a', 'b']);
     expect(notificador.sucesso).toHaveBeenCalledWith('Tarefa criada.');
+  });
+
+  it('cria várias tarefas no fim da coluna', async () => {
+    const { controller, model, notificador } = preparar([tarefa('a', 'todo', 0)]);
+    await controller.carregar();
+    model.criarVarias.mockResolvedValue([tarefa('b', 'todo', 1), tarefa('c', 'todo', 2)]);
+    const lista = [
+      { ...vazio, titulo: 'b' },
+      { ...vazio, titulo: 'c' },
+    ];
+
+    const salvou = await controller.criarVarias(lista, 'todo');
+
+    expect(salvou).toBe(true);
+    expect(model.criarVarias).toHaveBeenCalledWith(lista, 'todo', 1);
+    expect(controller.tarefas().map((item) => item.id)).toEqual(['a', 'b', 'c']);
+    expect(notificador.sucesso).toHaveBeenCalledWith('2 tarefas criadas.');
+  });
+
+  it('não muda nada na tela quando a criação em lista falha', async () => {
+    const { controller, model, notificador } = preparar([tarefa('a')]);
+    await controller.carregar();
+    model.criarVarias.mockRejectedValue(new ErroValidacao('Tarefa 2: O título é obrigatório.'));
+
+    const salvou = await controller.criarVarias([vazio, vazio]);
+
+    expect(salvou).toBe(false);
+    expect(controller.tarefas().map((item) => item.id)).toEqual(['a']);
+    expect(notificador.erro).toHaveBeenCalledWith('Tarefa 2: O título é obrigatório.');
   });
 
   it('mostra a mensagem da regra de negócio quando a criação falha', async () => {

@@ -122,6 +122,19 @@ export class TarefaController {
     });
   }
 
+  /** Cria uma lista de tarefas de uma vez, no fim da coluna e na ordem recebida. */
+  criarVarias(lista: readonly DadosTarefa[], status: StatusTarefa = 'todo'): Promise<boolean> {
+    return this.salvar(
+      `${lista.length} tarefas criadas.`,
+      'Não foi possível criar as tarefas.',
+      async () => {
+        const posicao = proximaPosicao(this.tarefas(), status);
+        const novas = await this.model.criarVarias(lista, status, posicao);
+        this.tarefas.update((tarefas) => [...tarefas, ...novas]);
+      },
+    );
+  }
+
   atualizar(id: string, dados: DadosTarefa): Promise<boolean> {
     return this.salvar('Tarefa atualizada.', 'Não foi possível atualizar a tarefa.', async () => {
       const atualizada = await this.model.atualizar(id, dados);

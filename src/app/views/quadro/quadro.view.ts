@@ -100,6 +100,12 @@ export class QuadroView implements OnInit {
     }
   }
 
+  protected async salvarVarias(lista: DadosTarefa[]): Promise<void> {
+    if (await this.tarefas.criarVarias(lista, this.statusNovaTarefa())) {
+      this.janelaAberta.set(false);
+    }
+  }
+
   protected confirmarExclusao(tarefa: Tarefa): void {
     this.confirmacao.confirm({
       header: 'Excluir tarefa',

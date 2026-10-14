@@ -6,7 +6,7 @@ create table if not exists public.tasks (
   user_id     uuid not null default auth.uid() references auth.users (id) on delete cascade,
   title       text not null check (char_length(title) between 1 and 120),
   description text not null default '' check (char_length(description) <= 2000),
-  status      text not null default 'todo' check (status in ('todo', 'doing', 'done')),
+  status      text not null default 'todo' check (status in ('waiting', 'todo', 'doing', 'done')),
   position    integer not null default 0,
   created_at  timestamptz not null default now()
 );
@@ -49,7 +49,7 @@ create table if not exists public.task_status_history (
   id          bigint generated always as identity primary key,
   task_id     uuid not null references public.tasks (id) on delete cascade,
   user_id     uuid not null references auth.users (id) on delete cascade,
-  status      text not null check (status in ('todo', 'doing', 'done')),
+  status      text not null check (status in ('waiting', 'todo', 'doing', 'done')),
   changed_at  timestamptz not null default now()
 );
 
@@ -90,3 +90,13 @@ insert into public.task_status_history (task_id, user_id, status, changed_at)
 select t.id, t.user_id, t.status, t.created_at
 from public.tasks t
 where not exists (select 1 from public.task_status_history h where h.task_id = t.id);
+
+-- Coluna "Aguardando aprovação" (waiting): atualiza a regra de status em bancos antigos.
+alter table public.tasks drop constraint if exists tasks_status_check;
+alter table public.tasks add constraint tasks_status_check
+  check (status in ('waiting', 'todo', 'doing', 'done'));
+
+alter table public.task_status_history
+  drop constraint if exists task_status_history_status_check;
+alter table public.task_status_history add constraint task_status_history_status_check
+  check (status in ('waiting', 'todo', 'doing', 'done'));

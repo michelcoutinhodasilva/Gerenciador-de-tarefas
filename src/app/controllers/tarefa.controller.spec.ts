@@ -50,8 +50,13 @@ describe('TarefaController', () => {
     await controller.carregar();
 
     expect(controller.carregando()).toBe(false);
-    expect(controller.colunas().map((coluna) => coluna.tarefas.length)).toEqual([1, 0, 1]);
-    expect(controller.colunas()[0].rotulo).toBe('A fazer');
+    expect(controller.colunas().map((coluna) => coluna.tarefas.length)).toEqual([0, 1, 0, 1]);
+    expect(controller.colunas().map((coluna) => coluna.rotulo)).toEqual([
+      'Aguardando aprovação',
+      'A fazer',
+      'Em andamento',
+      'Concluído',
+    ]);
   });
 
   it('avisa quando não consegue carregar', async () => {
@@ -157,7 +162,7 @@ describe('TarefaController', () => {
 
     await controller.mover('a', 'done', 1);
 
-    expect(controller.colunas()[2].tarefas.map((item) => item.id)).toEqual(['c', 'a']);
+    expect(controller.colunas()[3].tarefas.map((item) => item.id)).toEqual(['c', 'a']);
     expect(model.salvarPosicoes).toHaveBeenCalledWith([
       { id: 'a', status: 'done', posicao: 1 },
       { id: 'b', status: 'todo', posicao: 0 },
@@ -204,7 +209,7 @@ describe('TarefaController', () => {
 
     await controller.concluir('a');
 
-    expect(controller.colunas()[2].tarefas.map((item) => item.id)).toEqual(['c', 'a']);
+    expect(controller.colunas()[3].tarefas.map((item) => item.id)).toEqual(['c', 'a']);
     expect(model.salvarPosicoes).toHaveBeenCalledWith([{ id: 'a', status: 'done', posicao: 1 }]);
     expect(controller.conquista()).toMatchObject({ tipo: 'tarefa', titulo: 'a' });
     expect(notificador.sucesso).not.toHaveBeenCalled();

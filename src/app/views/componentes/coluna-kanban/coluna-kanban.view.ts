@@ -4,6 +4,7 @@ import { StatusTarefa, Tarefa } from '../../../models/entidades/tarefa';
 import { CartaoTarefaView } from '../cartao-tarefa/cartao-tarefa.view';
 
 const CORES_STATUS: Readonly<Record<StatusTarefa, string>> = {
+  waiting: 'column-status-dot--waiting',
   todo: 'column-status-dot--todo',
   doing: 'column-status-dot--doing',
   done: 'column-status-dot--done',

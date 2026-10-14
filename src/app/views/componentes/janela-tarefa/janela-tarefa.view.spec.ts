@@ -66,6 +66,25 @@ describe('JanelaTarefaView', () => {
     expect(criarOutra()).toBeNull();
   });
 
+  const aguardaAprovacao = () =>
+    document.querySelector<HTMLInputElement>('[data-testid="aguarda-aprovacao"]');
+
+  it('marcar "Aguarda aprovação" cria em "Aguardando aprovação"; desmarcar volta para "A fazer"', async () => {
+    const { fixture } = await preparar(null);
+
+    aguardaAprovacao()!.click();
+    expect(fixture.componentInstance.status()).toBe('waiting');
+
+    aguardaAprovacao()!.click();
+    expect(fixture.componentInstance.status()).toBe('todo');
+  });
+
+  it('não mostra "Aguarda aprovação" ao editar', async () => {
+    await preparar(tarefa);
+
+    expect(aguardaAprovacao()).toBeNull();
+  });
+
   /** Simula colar `texto` no campo de título. */
   function colarNoTitulo(texto: string): Event {
     const evento = new Event('paste', { cancelable: true });

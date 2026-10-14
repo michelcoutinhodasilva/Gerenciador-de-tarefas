@@ -40,7 +40,7 @@ export class QuadroView implements OnInit {
   protected readonly tela = signal<'quadro' | 'calendario'>('quadro');
   protected readonly janelaAberta = signal(false);
   protected readonly editando = signal<Tarefa | null>(null);
-  private readonly statusNovaTarefa = signal<StatusTarefa>('todo');
+  protected readonly statusNovaTarefa = signal<StatusTarefa>('todo');
   private readonly campoBusca = viewChild<ElementRef<HTMLInputElement>>('busca');
   private readonly janela = viewChild(JanelaTarefaView);
 
@@ -50,7 +50,7 @@ export class QuadroView implements OnInit {
   }));
 
   protected readonly resumo = computed(() => {
-    const contagem: Record<StatusTarefa, number> = { todo: 0, doing: 0, done: 0 };
+    const contagem: Record<StatusTarefa, number> = { waiting: 0, todo: 0, doing: 0, done: 0 };
     for (const tarefa of this.tarefas.tarefas()) {
       contagem[tarefa.status] += 1;
     }

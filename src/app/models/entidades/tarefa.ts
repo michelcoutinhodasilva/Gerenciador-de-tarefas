@@ -1,12 +1,13 @@
 import { ErroValidacao } from './erro-validacao';
 
 /** Códigos iguais aos gravados no banco (supabase/schema.sql). */
-export type StatusTarefa = 'todo' | 'doing' | 'done';
+export type StatusTarefa = 'waiting' | 'todo' | 'doing' | 'done';
 
 /** Ordem das colunas do quadro (fonte única dos status). */
-export const STATUS_TAREFA: readonly StatusTarefa[] = ['todo', 'doing', 'done'];
+export const STATUS_TAREFA: readonly StatusTarefa[] = ['waiting', 'todo', 'doing', 'done'];
 
 export const ROTULOS_STATUS: Readonly<Record<StatusTarefa, string>> = {
+  waiting: 'Aguardando aprovação',
   todo: 'A fazer',
   doing: 'Em andamento',
   done: 'Concluído',
@@ -247,7 +248,7 @@ export function entradaNaColuna(tarefa: Tarefa): string {
 
 /** Milissegundos que a tarefa passou em cada coluna, até `agora`. */
 export function tempoPorStatus(tarefa: Tarefa, agora: number): Record<StatusTarefa, number> {
-  const tempos: Record<StatusTarefa, number> = { todo: 0, doing: 0, done: 0 };
+  const tempos: Record<StatusTarefa, number> = { waiting: 0, todo: 0, doing: 0, done: 0 };
   const passagens = historicoDe(tarefa);
   passagens.forEach((passagem, indice) => {
     const proxima = passagens[indice + 1];

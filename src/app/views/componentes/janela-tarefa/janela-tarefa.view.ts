@@ -27,6 +27,7 @@ import {
   ROTULOS_PRIORIDADE,
   ROTULOS_STATUS,
   STATUS_TAREFA,
+  StatusTarefa,
   Tarefa,
   tempoPorStatus,
 } from '../../../models/entidades/tarefa';
@@ -44,6 +45,8 @@ export class JanelaTarefaView {
   /** Hora atual (ms) para calcular o tempo em cada coluna. */
   readonly agora = input(0);
   readonly salvando = input(false);
+  /** Ao criar: coluna onde a tarefa nova entra. */
+  readonly status = model<StatusTarefa>('todo');
   readonly salvar = output<DadosTarefa>();
   /** Lista colada no título: entrega todas as tarefas de uma vez. */
   readonly salvarVarias = output<DadosTarefa[]>();

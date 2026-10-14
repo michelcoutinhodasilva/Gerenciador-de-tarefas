@@ -240,8 +240,17 @@ describe('Tarefa (entidade)', () => {
         ],
       };
       const tempos = tempoPorStatus(comHistorico, hora('2026-10-02T06:00:00Z'));
-      expect(tempos).toEqual({ todo: 3 * 3_600_000, doing: 3 * 3_600_000, done: 0 });
+      expect(tempos).toEqual({ waiting: 0, todo: 3 * 3_600_000, doing: 3 * 3_600_000, done: 0 });
       expect(entradaNaColuna(comHistorico)).toBe('2026-10-02T05:00:00Z');
+    });
+
+    it('aprovar: sair de "Aguardando aprovação" para "A fazer" registra o tempo de espera', () => {
+      const aguardando = tarefa('a', 'waiting', 0);
+      const [aprovada] = moverTarefa([aguardando], 'a', 'todo', 0, '2026-10-02T04:00:00Z');
+      const tempos = tempoPorStatus(aprovada, hora('2026-10-02T05:00:00Z'));
+      expect(aprovada.status).toBe('todo');
+      expect(tempos.waiting).toBe(4 * 3_600_000);
+      expect(tempos.todo).toBe(3_600_000);
     });
 
     it('sem histórico, conta a coluna atual desde a criação', () => {

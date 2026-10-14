@@ -110,6 +110,19 @@
       }
     </div>
 
+    @if (!tarefa()) {
+      <label class="dialog-create-more">
+        <input
+          #marcarAprovacao
+          type="checkbox"
+          data-testid="aguarda-aprovacao"
+          [checked]="status() === 'waiting'"
+          (change)="status.set(marcarAprovacao.checked ? 'waiting' : 'todo')"
+        />
+        Aguarda aprovação do supervisor
+      </label>
+    }
+
     @if (tarefa(); as aberta) {
       <section class="task-history" aria-label="Tempo em cada coluna" data-testid="historico">
         <p class="task-history-created">

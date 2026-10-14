@@ -912,6 +912,10 @@ app-coluna-kanban {
   box-shadow: 0 0 0 3px rgb(255 255 255 / 75%);
 }
 
+.column-status-dot--waiting {
+  background: #8b8fb5;
+}
+
 .column-status-dot--todo {
   background: #929d95;
 }

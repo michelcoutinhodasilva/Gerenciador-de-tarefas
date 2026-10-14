@@ -1,6 +1,7 @@
 // Gera src/environments/environment.ts a partir do .env (fonte única das chaves).
 // Roda sozinho antes de start, build, watch e test (veja package.json).
-import { existsSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 
 const ENV_FILE = '.env';
 const OUTPUT = 'src/environments/environment.ts';
@@ -18,6 +19,7 @@ if (missing.length > 0) {
   process.exit(1);
 }
 
+mkdirSync(dirname(OUTPUT), { recursive: true });
 writeFileSync(
   OUTPUT,
   `// Gerado por scripts/generate-env.mjs a partir do .env. Não edite nem faça commit.

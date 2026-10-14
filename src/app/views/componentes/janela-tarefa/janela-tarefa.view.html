@@ -129,6 +129,11 @@
           Criada em {{ aberta.criadaEm | date: 'dd/MM/yyyy' }} às
           {{ aberta.criadaEm | date: 'HH:mm' }}
         </p>
+        @if (concluidaEm(); as concluida) {
+          <p class="task-history-created" data-testid="concluida-em">
+            Concluída em {{ concluida | date: 'dd/MM/yyyy' }} às {{ concluida | date: 'HH:mm' }}
+          </p>
+        }
         <ul>
           @for (item of temposPorColuna(); track item.status) {
             <li [class.task-history-current]="item.atual">

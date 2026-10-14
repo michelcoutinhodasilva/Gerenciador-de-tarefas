@@ -21,6 +21,7 @@ import { comoUmaTarefa, ItemLista, separarLista } from '../../../models/entidade
 import {
   DadosTarefa,
   dataHoje,
+  entradaNaColuna,
   LIMITES_TAREFA,
   PRIORIDADES_TAREFA,
   PrioridadeTarefa,
@@ -71,6 +72,12 @@ export class JanelaTarefaView {
       tempo: tempos[status] ? formatarDuracao(tempos[status]) : '—',
       atual: status === tarefa.status,
     }));
+  });
+
+  /** Quando a tarefa entrou em "Concluído" (ISO); `null` se não está concluída. */
+  protected readonly concluidaEm = computed(() => {
+    const tarefa = this.tarefa();
+    return tarefa?.status === 'done' ? entradaNaColuna(tarefa) : null;
   });
 
   protected readonly rotuloSalvar = computed(() => {

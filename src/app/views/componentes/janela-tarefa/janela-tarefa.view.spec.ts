@@ -44,6 +44,22 @@ describe('JanelaTarefaView', () => {
     expect(texto).toContain('—');
   });
 
+  it('mostra quando foi concluída só se a tarefa estiver concluída', async () => {
+    const concluidaEm = () => document.querySelector('[data-testid="concluida-em"]');
+    const concluida: Tarefa = {
+      ...tarefa,
+      status: 'done',
+      historico: [...tarefa.historico, { status: 'done', desde: '2026-10-03T15:20:00' }],
+    };
+
+    await preparar(tarefa);
+    expect(concluidaEm()).toBeNull();
+    document.querySelectorAll('.p-dialog-mask, p-dialog').forEach((no) => no.remove());
+
+    await preparar(concluida);
+    expect(concluidaEm()?.textContent).toContain('Concluída em 03/10/2026 às 15:20');
+  });
+
   it('não mostra tempos ao criar uma tarefa nova', async () => {
     const { historico } = await preparar(null);
 

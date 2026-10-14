@@ -7,10 +7,12 @@ import { TarefaController } from '../../controllers/tarefa.controller';
 import {
   DadosTarefa,
   FILTROS_TAREFA,
+  FiltroTarefa,
   ROTULOS_FILTRO,
   StatusTarefa,
   Tarefa,
 } from '../../models/entidades/tarefa';
+import { CalendarioView } from '../componentes/calendario/calendario.view';
 import { ColunaKanbanView } from '../componentes/coluna-kanban/coluna-kanban.view';
 import { ComemoracaoView } from '../componentes/comemoracao/comemoracao.view';
 import { JanelaTarefaView } from '../componentes/janela-tarefa/janela-tarefa.view';
@@ -18,7 +20,14 @@ import { JanelaTarefaView } from '../componentes/janela-tarefa/janela-tarefa.vie
 /** View: tela do quadro Kanban. Toda ação é repassada aos controllers. */
 @Component({
   selector: 'app-quadro-view',
-  imports: [CdkDropListGroup, Button, ColunaKanbanView, JanelaTarefaView, ComemoracaoView],
+  imports: [
+    CdkDropListGroup,
+    Button,
+    ColunaKanbanView,
+    JanelaTarefaView,
+    ComemoracaoView,
+    CalendarioView,
+  ],
   providers: [TarefaController],
   templateUrl: './quadro.view.html',
   host: { '(document:keydown)': 'aoAtalho($event)' },
@@ -28,6 +37,7 @@ export class QuadroView implements OnInit {
   protected readonly autenticacao = inject(AutenticacaoController);
   private readonly confirmacao = inject(ConfirmationService);
 
+  protected readonly tela = signal<'quadro' | 'calendario'>('quadro');
   protected readonly janelaAberta = signal(false);
   protected readonly editando = signal<Tarefa | null>(null);
   private readonly statusNovaTarefa = signal<StatusTarefa>('todo');
@@ -55,6 +65,12 @@ export class QuadroView implements OnInit {
 
   ngOnInit(): void {
     this.tarefas.carregar();
+  }
+
+  /** Escolher um filtro sempre volta para o quadro. */
+  protected escolherFiltro(filtro: FiltroTarefa): void {
+    this.tarefas.filtro.set(filtro);
+    this.tela.set('quadro');
   }
 
   protected abrirCriacao(status: StatusTarefa = 'todo'): void {
@@ -112,7 +128,7 @@ export class QuadroView implements OnInit {
     if (tecla === 'c') {
       evento.preventDefault();
       this.abrirCriacao();
-    } else if (tecla === '/') {
+    } else if (tecla === '/' && this.tela() === 'quadro') {
       evento.preventDefault();
       this.campoBusca()?.nativeElement.focus();
     }

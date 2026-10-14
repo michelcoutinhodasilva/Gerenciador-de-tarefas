@@ -1,0 +1,114 @@
+<div class="calendar">
+  <div class="calendar-header">
+    <h3 class="calendar-month" data-testid="calendario-mes">{{ rotuloMes() }}</h3>
+    <div class="calendar-nav">
+      <button type="button" class="calendar-today" (click)="irParaHoje()">Hoje</button>
+      <button
+        type="button"
+        class="calendar-arrow"
+        data-testid="mes-anterior"
+        aria-label="Mês anterior"
+        (click)="navegar(-1)"
+      >
+        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m10 3-5 5 5 5" /></svg>
+      </button>
+      <button
+        type="button"
+        class="calendar-arrow"
+        data-testid="mes-seguinte"
+        aria-label="Mês seguinte"
+        (click)="navegar(1)"
+      >
+        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m6 3 5 5-5 5" /></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="calendar-legend" aria-hidden="true">
+    <span><i class="calendar-dot calendar-dot--created"></i>Criadas</span>
+    <span><i class="calendar-dot calendar-dot--delivered"></i>Entregues</span>
+  </div>
+
+  <div class="calendar-grid">
+    @for (nome of diasDaSemana; track nome) {
+      <span class="calendar-weekday">{{ nome }}</span>
+    }
+    @for (dia of grade(); track dia.data) {
+      <button
+        type="button"
+        class="calendar-day"
+        [class.calendar-day--outside]="!dia.doMes"
+        [class.calendar-day--today]="dia.data === hoje()"
+        [class.calendar-day--selected]="dia.data === selecionado()"
+        [attr.data-testid]="'dia-' + dia.data"
+        [attr.aria-label]="rotuloAcessivel(dia)"
+        [attr.aria-pressed]="dia.data === selecionado()"
+        (click)="escolher(dia)"
+      >
+        <span class="calendar-day-number">{{ dia.numero }}</span>
+        <span class="calendar-day-counts">
+          @if (dia.criadas) {
+            <span class="calendar-count calendar-count--created">{{ dia.criadas }}</span>
+          }
+          @if (dia.entregues) {
+            <span class="calendar-count calendar-count--delivered">{{ dia.entregues }}</span>
+          }
+        </span>
+      </button>
+    }
+  </div>
+
+  @if (doDia(); as dia) {
+    <section class="calendar-detail" data-testid="detalhe-dia" aria-live="polite">
+      <h3 class="calendar-detail-title">{{ rotuloDia() }}</h3>
+
+      <div class="calendar-detail-lists">
+        <div>
+          <h4 class="calendar-detail-label">
+            <i class="calendar-dot calendar-dot--created"></i>Criadas ({{ dia.criadas.length }})
+          </h4>
+          @for (tarefa of dia.criadas; track tarefa.id) {
+            <button
+              type="button"
+              class="calendar-task"
+              data-testid="criada"
+              (click)="abrir.emit(tarefa)"
+            >
+              <span class="calendar-task-title">{{ tarefa.titulo }}</span>
+              <span class="calendar-task-meta"
+                >{{ tarefa.criadaEm | date: 'HH:mm' }} · {{ rotulosStatus[tarefa.status] }}</span
+              >
+            </button>
+          } @empty {
+            <p class="calendar-empty">Nenhuma tarefa criada neste dia.</p>
+          }
+        </div>
+
+        <div>
+          <h4 class="calendar-detail-label">
+            <i class="calendar-dot calendar-dot--delivered"></i>Entregues ({{
+              dia.entregues.length
+            }})
+          </h4>
+          @for (tarefa of dia.entregues; track tarefa.id) {
+            <button
+              type="button"
+              class="calendar-task"
+              data-testid="entregue"
+              (click)="abrir.emit(tarefa)"
+            >
+              <span class="calendar-task-title">{{ tarefa.titulo }}</span>
+              <span class="calendar-task-meta"
+                >Criada em {{ tarefa.criadaEm | date: 'dd/MM' }}</span
+              >
+            </button>
+          } @empty {
+            <p class="calendar-empty">Nenhuma tarefa entregue neste dia.</p>
+          }
+        </div>
+      </div>
+    </section>
+  } @else {
+    <p class="calendar-hint">Clique em um dia para ver as tarefas dele.</p>
+  }
+</div>

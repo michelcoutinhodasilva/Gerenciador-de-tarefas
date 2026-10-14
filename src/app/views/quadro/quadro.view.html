@@ -33,10 +33,10 @@
         <button
           type="button"
           class="sidebar-nav-item"
-          [class.active]="tarefas.filtro() === item.valor"
+          [class.active]="tela() === 'quadro' && tarefas.filtro() === item.valor"
           [attr.data-testid]="'filtro-' + item.valor"
-          [attr.aria-pressed]="tarefas.filtro() === item.valor"
-          (click)="tarefas.filtro.set(item.valor)"
+          [attr.aria-pressed]="tela() === 'quadro' && tarefas.filtro() === item.valor"
+          (click)="escolherFiltro(item.valor)"
         >
           <svg
             class="sidebar-nav-icon"
@@ -76,6 +76,29 @@
           >
         </button>
       }
+
+      <p class="sidebar-section-label sidebar-section-label--spaced">HISTÓRICO</p>
+      <button
+        type="button"
+        class="sidebar-nav-item"
+        data-testid="abrir-calendario"
+        [class.active]="tela() === 'calendario'"
+        [attr.aria-pressed]="tela() === 'calendario'"
+        (click)="tela.set('calendario')"
+      >
+        <svg
+          class="sidebar-nav-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          aria-hidden="true"
+        >
+          <rect x="3.5" y="5" width="17" height="16" rx="2.5" />
+          <path d="M8 3v4M16 3v4M3.5 10h17M7.5 14.5h3v3h-3z" />
+        </svg>
+        <span class="sidebar-nav-label">Calendário</span>
+      </button>
     </nav>
 
     <div class="sidebar-bottom">
@@ -127,7 +150,7 @@
         <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <path d="m6 3 5 5-5 5" />
         </svg>
-        <strong>Quadro</strong>
+        <strong>{{ tela() === 'calendario' ? 'Calendário' : 'Quadro' }}</strong>
       </div>
       <div class="topbar-date">
         <svg
@@ -214,6 +237,21 @@
         </article>
       </section>
 
+      @if (tela() === 'calendario') {
+      <section class="board-section" aria-labelledby="titulo-calendario">
+        <div class="board-section-header">
+          <div class="board-section-heading">
+            <h2 id="titulo-calendario">Calendário</h2>
+            <span>Quando cada tarefa foi criada e quando foi entregue.</span>
+          </div>
+        </div>
+        <app-calendario
+          [tarefas]="tarefas.tarefas()"
+          [hoje]="tarefas.hoje()"
+          (abrir)="abrirEdicao($event)"
+        />
+      </section>
+      } @else {
       <section class="board-section" aria-labelledby="titulo-fluxo">
         <div class="board-section-header">
           <div class="board-section-heading">
@@ -308,6 +346,7 @@
           }
         </div>
       </section>
+      }
     </div>
   </main>
 </div>
